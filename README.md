@@ -1,7 +1,3 @@
----
-
-Este arquivo será focado no ecossistema do painel administrativo do Vue 3.
-
 ```markdown
 # 🌐 Painel Administrativo - Ponto Web
 
