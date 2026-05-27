@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:3003/api',
+    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3003/api',
+    timeout: 10000,
 });
 
 // Interceptor para injetar o Token JWT em cada requisição automaticamente
