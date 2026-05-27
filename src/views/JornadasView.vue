@@ -272,9 +272,9 @@ onMounted(carregarJornadas);
 .content { margin-left: 250px; padding: 2rem; flex: 1; font-family: sans-serif; }
 h2 { color: #0f172a; margin: 0; }
 p { color: #64748b; margin: 0.25rem 0 2rem 0; }
-.grid-jornadas { display: flex; gap: 2rem; align-items: flex-start; }
+.grid-jornadas { display: flex; gap: 2rem; align-items: flex-start; flex-wrap: wrap; }
 .card-form { flex: 2; background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-.card-lista { flex: 1; background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); min-width: 325px; }
+.card-lista { flex: 1; background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); min-width: 320px; max-width: 100%; box-sizing: border-box; }
 .input-group { display: flex; flex-direction: column; gap: 0.4rem; }
 .input-group label { font-size: 0.85rem; font-weight: bold; color: #475569; }
 .input-group input { padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; }
@@ -299,8 +299,8 @@ p { color: #64748b; margin: 0.25rem 0 2rem 0; }
 .btn-cancelar { flex: 1; padding: 0.75rem; background: #64748b; color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; }
 .btn-cancelar:hover { background: #475569; }
 
-.jornada-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0.5rem; border-bottom: 1px solid #f1f5f9; gap: 0.5rem; }
-.jornada-info { flex: 1; }
+.jornada-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0.5rem; border-bottom: 1px solid #f1f5f9; gap: 1rem; width: 100%; box-sizing: border-box; }
+.jornada-info { flex: 1; word-break: break-word; }
 .sub-info { margin: 0.2rem 0 0 0; font-size: 0.8rem; color: #64748b; }
 .badge-escala-status { display: inline-block; font-size: 0.75rem; font-weight: 700; color: #2563eb; margin-left: 0.25rem; }
 
