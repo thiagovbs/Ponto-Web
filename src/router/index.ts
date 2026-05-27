@@ -4,6 +4,7 @@ import DashboardView from '../views/DashboardView.vue';
 import FuncionariosView from '../views/FuncionariosView.vue';
 import RelatoriosView from '../views/RelatoriosView.vue';
 import JornadasView from '../views/JornadasView.vue';
+import AuditoriaView from '../views/AuditoriaView.vue';
 
 const routes: RouteRecordRaw[] = [
   { path: '/', component: LoginView },
@@ -25,6 +26,11 @@ const routes: RouteRecordRaw[] = [
   { 
     path: '/jornadas', 
     component: JornadasView, 
+    meta: { requiresAuth: true } 
+  },
+  { 
+    path: '/auditoria', 
+    component: AuditoriaView, 
     meta: { requiresAuth: true } 
   },
 ];

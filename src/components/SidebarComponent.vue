@@ -20,6 +20,7 @@ const logout = () => {
       <router-link to="/jornadas" class="menu-item" active-class="active">⏱️ Configurar Horários</router-link>
       <router-link to="/funcionarios" class="menu-item" active-class="active">👥 Funcionários</router-link>
       <router-link to="/relatorios" class="menu-item" active-class="active">📋 Espelho de Ponto</router-link>
+      <router-link to="/auditoria" class="menu-item" active-class="active">🛡️ Logs de Auditoria</router-link>
     </nav>
     <button @click="logout" class="btn-logout">🚪 Sair</button>
   </aside>
