@@ -120,7 +120,7 @@ const limparFormulario = () => {
   // Reseta para a estrutura padrão estável
   regrasDias.value = [
     { dia: 'Segunda-feira', numero: 1, trabalha: true, entrada: '08:00', saida: '17:00' },
-    { dia: 'Terça-feira',   numero: 2, trabaja: true, entrada: '08:00', saida: '17:00' },
+    { dia: 'Terça-feira',   numero: 2, trabalha: true, entrada: '08:00', saida: '17:00' },
     { dia: 'Quarta-feira',  numero: 3, trabalha: true, entrada: '08:00', saida: '17:00' },
     { dia: 'Quinta-feira',  numero: 4, trabalha: true, entrada: '08:00', saida: '17:00' },
     { dia: 'Sexta-feira',   numero: 5, trabalha: true, entrada: '08:00', saida: '17:00' },
