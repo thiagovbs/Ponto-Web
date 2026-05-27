@@ -226,7 +226,7 @@ th { background-color: #f9fafb; color: #374151; font-weight: bold; }
 .status-txt.padrao { color: #4b5563; background: #f3f4f6; border-color: #e5e7eb; }
 
 /* Rodapé e Estilos de Paginação Web */
-.paginacao-footer { display: flex; justify-content: space-between; items-center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e5e7eb; }
+.paginacao-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e5e7eb; }
 .contador { font-size: 0.85rem; color: #6b7280; font-weight: 500; }
 .controles-paginacao { display: flex; items-center; gap: 0.75rem; }
 .indicador-pag { font-size: 0.85rem; font-weight: bold; color: #374151; background: #f3f4f6; padding: 0.35rem 0.75rem; border-radius: 6px; }
