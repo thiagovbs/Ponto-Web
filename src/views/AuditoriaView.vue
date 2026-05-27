@@ -228,7 +228,7 @@ th { background-color: #f9fafb; color: #374151; font-weight: bold; }
 /* Rodapé e Estilos de Paginação Web */
 .paginacao-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e5e7eb; }
 .contador { font-size: 0.85rem; color: #6b7280; font-weight: 500; }
-.controles-paginacao { display: flex; items-center; gap: 0.75rem; }
+.controles-paginacao { display: flex; align-items: center;  gap: 0.75rem; }
 .indicador-pag { font-size: 0.85rem; font-weight: bold; color: #374151; background: #f3f4f6; padding: 0.35rem 0.75rem; border-radius: 6px; }
 .btn-pag { padding: 0.35rem 0.75rem; border: 1px solid #d1d5db; background: white; border-radius: 6px; font-size: 0.85rem; font-weight: bold; color: #4b5563; cursor: pointer; transition: all 0.1s ease; }
 .btn-pag:hover:not(:disabled) { background: #f9fafb; border-color: #9ca3af; color: #111827; }
