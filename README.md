@@ -38,3 +38,6 @@ Se você utilizou o `docker-compose up` na raiz do projeto de controle de horas,
 1. Entre na pasta do projeto web:
    ```bash
    cd ponto-web
+2. Execute o servidor localmente:
+   ```bash
+   npm run dev   
