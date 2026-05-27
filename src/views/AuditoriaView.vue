@@ -32,7 +32,7 @@ const carregarLogsDaAuditoria = async () => {
   erroConexao.value = false;
 
   try {
-    const res = await api.get('/auditoria/logs', {
+    const res = await api.get('/auditoria', {
       params: {
         pagina: paginaAtual.value,
         limite: limitePorPagina.value,
