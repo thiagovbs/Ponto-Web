@@ -13,12 +13,16 @@ const mensagemErro = ref('');
 const trabalhaDomingoAlt = ref(false);
 const domingoInicioImpar = ref(true);
 
+// 🔥 NOVOS CAMPOS: Configuração do Horário de Almoço Pré-assinalado
+const utilizaAlmocoAutomatico = ref(true);
+const duracaoAlmocoMinutos = ref(60);
+
 // Campos específicos para o plantão alternado (12x36 / Dia Sim, Dia Não)
 const entradaAlternada = ref('07:00');
 const saidaAlternada = ref('19:00');
 
 // Estrutura reativa padrão para os dias da semana (usada na Escala Semanal)
-const regrasDias = ref([
+const rulesDias = ref([
   { dia: 'Segunda-feira', numero: 1, trabalha: true, entrada: '08:00', saida: '17:00' },
   { dia: 'Terça-feira',   numero: 2, trabalha: true, entrada: '08:00', saida: '17:00' },
   { dia: 'Quarta-feira',  numero: 3, trabalha: true, entrada: '08:00', saida: '17:00' },
@@ -44,11 +48,14 @@ const salvarJornada = async () => {
   // Monta o payload dinamicamente com base no tipo de escala selecionado
   const payload: any = {
     descricao: descricao.value,
-    tipoEscala: tipoEscala.value
+    tipoEscala: tipoEscala.value,
+    // 🔥 ENTRADA DOS NOVOS PARÂMETROS NO PAYLOAD GLOBAL DE SALVAMENTO
+    utilizaAlmocoAutomatico: utilizaAlmocoAutomatico.value,
+    duracaoAlmocoMinutos: utilizaAlmocoAutomatico.value ? Number(duracaoAlmocoMinutos.value) : 0
   };
 
   if (tipoEscala.value === 'SEMANAL') {
-    payload.regrasDias = regrasDias.value;
+    payload.regrasDias = rulesDias.value;
     payload.trabalhaDomingoAlt = trabalhaDomingoAlt.value;
     payload.domingoInicioImpar = domingoInicioImpar.value;
   } else {
@@ -81,11 +88,15 @@ const entrarModoEdicao = (j: any) => {
   descricao.value = j.descricao;
   tipoEscala.value = j.tipoEscala || 'SEMANAL';
 
+  // 🔥 RECUPERAÇÃO DOS CAMPOS DE ALMOÇO DO BANCO DE DADOS PARA A TELA
+  utilizaAlmocoAutomatico.value = j.utilizaAlmocoAutomatico !== undefined ? j.utilizaAlmocoAutomatico : true;
+  duracaoAlmocoMinutos.value = j.duracaoAlmocoMinutos || 60;
+
   if (tipoEscala.value === 'SEMANAL') {
     trabalhaDomingoAlt.value = j.trabalhaDomingoAlt || false;
     domingoInicioImpar.value = j.domingoInicioImpar !== undefined ? j.domingoInicioImpar : true;
 
-    regrasDias.value.forEach(d => {
+    rulesDias.value.forEach(d => {
       if (d.numero >= 1 && d.numero <= 5) { 
         d.entrada = j.horaEntradaPadrao || '08:00';
         d.saida = j.horaSaidaPadrao || '17:00';
@@ -117,8 +128,12 @@ const limparFormulario = () => {
   entradaAlternada.value = '07:00';
   saidaAlternada.value = '19:00';
   
+  // 🔥 RESET DOS CAMPOS DE ALMOÇO PARA O VALOR PADRÃO
+  utilizaAlmocoAutomatico.value = true;
+  duracaoAlmocoMinutos.value = 60;
+  
   // Reseta para a estrutura padrão estável
-  regrasDias.value = [
+  rulesDias.value = [
     { dia: 'Segunda-feira', numero: 1, trabalha: true, entrada: '08:00', saida: '17:00' },
     { dia: 'Terça-feira',   numero: 2, trabalha: true, entrada: '08:00', saida: '17:00' },
     { dia: 'Quarta-feira',  numero: 3, trabalha: true, entrada: '08:00', saida: '17:00' },
@@ -156,11 +171,29 @@ onMounted(carregarJornadas);
             </select>
           </div>
 
-          <!-- BLOCO 1: RENDERIZAÇÃO DA ESCALA SEMANAL FIXA -->
+          <div class="secao-almoco-automatico">
+            <h4>Intervalo de Refeição / Almoço</h4>
+            <div class="checkbox-almoco">
+              <input type="checkbox" v-model="utilizaAlmocoAutomatico" id="almoco-auto" />
+              <label for="almoco-auto">Ativar <strong>Almoço Automático</strong> (Desconto pré-assinalado sem precisar bater ponto no meio do dia)</label>
+            </div>
+            
+            <div v-if="utilizaAlmocoAutomatico" class="sub-opcoes-almoco">
+              <label>Duração do Intervalo de Almoço:</label>
+              <select v-model="duracaoAlmocoMinutos">
+                <option :value="15">15 minutos (Café / Lanche)</option>
+                <option :value="30">30 minutos</option>
+                <option :value="60">1 hora (Padrão CLT)</option>
+                <option :value="90">1 hora e 30 minutos</option>
+                <option :value="120">2 horas</option>
+              </select>
+            </div>
+          </div>
+
           <div v-if="tipoEscala === 'SEMANAL'">
             <h4 style="margin-top: 1.5rem; color: #475569;">Configuração por Dia</h4>
             <div class="dias-lista">
-              <div v-for="item in regrasDias" :key="item.numero" class="dia-row">
+              <div v-for="item in rulesDias" :key="item.numero" class="dia-row">
                 <div class="dia-label">
                   <input type="checkbox" v-model="item.trabalha" :id="'dia-' + item.numero" />
                   <label :for="'dia-' + item.numero"><strong>{{ item.dia }}</strong></label>
@@ -192,7 +225,6 @@ onMounted(carregarJornadas);
             </div>
           </div>
 
-          <!-- BLOCO 2: RENDERIZAÇÃO DA ESCALA ALTERNADA (PLANTÃO) -->
           <div v-else class="secao-escala-alternada" style="margin-top: 1.5rem; padding: 1.25rem; background: #eff6ff; border-radius: 8px; border: 1px solid #bfdbfe;">
             <h4 style="margin: 0 0 0.5rem 0; color: #1e40af; font-weight: bold;">Configuração de Plantão Alternado</h4>
             <p style="margin: 0 0 1.25rem 0; font-size: 0.85rem; color: #1e3a8a; line-height: 1.4;">
@@ -235,7 +267,11 @@ onMounted(carregarJornadas);
                   Regime: {{ j.tipoEscala === 'ALTERNADA' ? '🔄 Plantão Alternado' : '📅 Fixo Semanal' }}
                 </span>
                 
-                <div v-if="j.tipoEscala !== 'ALTERNADA'">
+                <span class="badge-almoco-info" :style="{ backgroundColor: j.utilizaAlmocoAutomatico ? '#e0f2fe' : '#f3f4f6', color: j.utilizaAlmocoAutomatico ? '#0369a1' : '#6b7280' }">
+                  🍽️ Almoço Auto: {{ j.utilizaAlmocoAutomatico ? `${j.duracaoAlmocoMinutos} min` : 'Desativado (Bate 4x)' }}
+                </span>
+                
+                <div v-if="j.tipoEscala !== 'ALTERNADA'" style="margin-top: 0.5rem;">
                   <p class="sub-info">Seg a Sex: {{ j.horaEntradaPadrao }}h às {{ j.horaSaidaPadrao }}h</p>
                   <p class="sub-info">
                     Sábado: {{ j.trabalhaSabado ? `${j.horaEntradaSabado}h às ${j.horaSaidaSabado}h` : '☀️ Folga' }}
@@ -251,7 +287,7 @@ onMounted(carregarJornadas);
                     <span v-else>☀️ Folga</span>
                   </p>
                 </div>
-                <div v-else>
+                <div v-else style="margin-top: 0.5rem;">
                   <p class="sub-info" style="color: #1e40af; font-weight: 500;">
                     Horário do Plantão: {{ j.horaEntradaPadrao }}h às {{ j.horaSaidaPadrao }}h (12h)
                   </p>
@@ -278,6 +314,15 @@ p { color: #64748b; margin: 0.25rem 0 2rem 0; }
 .input-group { display: flex; flex-direction: column; gap: 0.4rem; }
 .input-group label { font-size: 0.85rem; font-weight: bold; color: #475569; }
 .input-group input { padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; }
+
+/* 🔥 ESTILIZAÇÃO DA NOVA SEÇÃO DE ALMOÇO AUTOMÁTICO */
+.secao-almoco-automatico { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed #e2e8f0; }
+.secao-almoco-automatico h4 { margin: 0 0 0.5rem 0; color: #334155; }
+.checkbox-almoco { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; color: #475569; }
+.sub-opcoes-almoco { margin-top: 0.5rem; margin-left: 1.5rem; display: flex; flex-direction: column; gap: 0.4rem; }
+.sub-opcoes-almoco label { font-size: 0.85rem; color: #64748b; font-weight: 500; }
+.sub-opcoes-almoco select { padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; background: white; font-size: 0.9rem; max-width: 250px; }
+.badge-almoco-info { display: inline-block; font-size: 0.7rem; font-weight: bold; padding: 0.2rem 0.5rem; border-radius: 4px; margin-top: 0.4rem; }
 
 .dias-lista { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
 .dia-row { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem; background: #f8fafc; border-radius: 8px; border: 1px solid #f1f5f9; }
