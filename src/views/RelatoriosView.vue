@@ -52,6 +52,47 @@ const buscarRelatorio = async () => {
   }
 };
 
+// 🔥 GATILHO DE IMPRESSÃO PROTEGIDO: Passa o token no Header e faz o download seguro do PDF
+const imprimirEspelho = async () => {
+  if (!funcionarioSelecionado.value) return;
+  
+  try {
+    // 1. Faz a chamada usando a instância do Axios (que já possui o Token no Header interceptor)
+    // Definimos o responseType como 'blob' para o Axios saber que vai receber um arquivo binário
+    const response = await api.get(`/relatorios/funcionario/${funcionarioSelecionado.value}/imprimir`, {
+      params: { 
+        mes: mesSelecionado.value, 
+        ano: anoSelecionado.value 
+      },
+      responseType: 'blob' 
+    });
+
+    // 2. Cria um link temporário em memória para o arquivo binário recebido
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const urlBlob = window.URL.createObjectURL(blob);
+    
+    // 3. Cria um elemento <a> invisível para forçar o download com o nome correto
+    const linkDownload = document.createElement('a');
+    linkDownload.href = urlBlob;
+    
+    // Define o nome do arquivo que o usuário vai salvar
+    const nomeArquivo = `espelho_ponto_${mesSelecionado.value}_${anoSelecionado.value}.pdf`;
+    linkDownload.setAttribute('download', nomeArquivo);
+    
+    // 4. Simula o clique do usuário para abrir a janela de salvar/imprimir do sistema operacional
+    document.body.appendChild(linkDownload);
+    linkDownload.click();
+    
+    // 5. Limpa os elementos da memória após o disparo do download
+    document.body.removeChild(linkDownload);
+    window.URL.revokeObjectURL(urlBlob);
+
+  } catch (error) {
+    console.error("Erro ao gerar ou baixar o arquivo PDF protegido:", error);
+    alert("Falha ao gerar o PDF de impressão. Verifique suas permissões de administrador.");
+  }
+};
+
 const abrirModalAjuste = (batida: any, dataDoDia: string) => {
   modoModal.value = 'EDITAR';
   modalAjuste.batidaId = batida.id;
@@ -87,14 +128,12 @@ const salvarAjustePonto = async () => {
 
   try {
     if (modoModal.value === 'EDITAR') {
-      // Caso 1: Ajustando um horário já batido (PUT no singular)
       await api.put(`/ponto/ajustar/${modalAjuste.batidaId}`, {
         novaHora: modalAjuste.novaHora,
         novaData: modalAjuste.dataBatida,
         justificativa: modalAjuste.justificativa
       });
     } else {
-      // Caso 2: Inserindo um ponto do zero num dia esquecido (POST no singular)
       await api.post('/ponto/incluir-manual', {
         usuarioId: funcionarioSelecionado.value,
         dataDia: modalAjuste.dataBatida,
@@ -104,7 +143,7 @@ const salvarAjustePonto = async () => {
     }
 
     modalAjuste.aberto = false;
-    await buscarRelatorio(); // Recarrega o banco de horas na tela
+    await buscarRelatorio();
     alert(modoModal.value === 'EDITAR' ? 'Ajuste gravado com sucesso!' : 'Marcação manual incluída!');
   } catch (error: any) {
     console.error(error);
@@ -129,13 +168,12 @@ const apagarPonto = async () => {
   modalAjuste.erro = '';
 
   try {
-    // Requisição enviada para o endpoint singular mapeado no backend
     await api.post(`/ponto/desconsiderar/${modalAjuste.batidaId}`, {
       justificativa: modalAjuste.justificativa
     });
 
     modalAjuste.aberto = false;
-    await buscarRelatorio(); // Recarrega o espelho de ponto na mesma hora
+    await buscarRelatorio();
     alert('Marcação desconsiderada com sucesso!');
   } catch (error: any) {
     console.error(error);
@@ -181,6 +219,17 @@ onMounted(async () => {
             <option :value="2025">2025</option>
             <option :value="2026">2026</option>
           </select>
+        </div>
+        
+        <div class="filtro-group-btn">
+          <button 
+            @click="imprimirEspelho" 
+            class="btn-imprimir" 
+            :disabled="!funcionarioSelecionado"
+            title="Exportar Folha de Ponto Limpa em PDF para Assinatura"
+          >
+            <span class="printer-icon">🖨️</span> Imprimir Espelho
+          </button>
         </div>
       </div>
 
@@ -323,10 +372,17 @@ onMounted(async () => {
 h2 { color: #0f172a; margin: 0; }
 p { color: #64748b; margin: 0.25rem 0 1.5rem 0; }
 
-.filtros-card { display: flex; gap: 1.5rem; background: white; padding: 1.25rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+.filtros-card { display: flex; gap: 1.5rem; background: white; padding: 1.25rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 1.5rem; align-items: flex-end; }
 .filtro-group { display: flex; flex-direction: column; gap: 0.4rem; flex: 1; }
 .filtro-group label { font-size: 0.8rem; font-weight: bold; color: #475569; }
-.filtro-group select { padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; background: white; }
+.filtro-group select { padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; background: white; height: 38px; }
+
+/* 🖨️ GRUPO DO ESTILO DO BOTÃO DE IMPRESSÃO */
+.filtro-group-btn { display: flex; align-items: flex-end; }
+.btn-imprimir { background-color: #0f172a; color: white; border: none; border-radius: 6px; padding: 0 1.25rem; height: 38px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s; }
+.btn-imprimir:hover { background-color: #1e293b; }
+.btn-imprimir:disabled { background-color: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
+.printer-icon { font-size: 1.05rem; }
 
 .dashboard-resumo { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; }
 .stat-card { flex: 1; background: white; padding: 1.25rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
@@ -352,11 +408,9 @@ th { background-color: #f9fafb; color: #374151; }
 .tooltip-justificativa { display: none; position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.75rem; width: 220px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); z-index: 50; font-family: sans-serif; }
 .tag-batida:hover .tooltip-justificativa { display: block; }
 
-/* ➕ BOTÃO DISCRETO PARA DIA JÁ INICIADO */
 .btn-adicionar-ponto { background: #e5e7eb; color: #374151; border: none; border-radius: 4px; padding: 0.15rem 0.4rem; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: background 0.2s; height: 24px; line-height: 18px; }
 .btn-adicionar-ponto:hover { background: #d1d5db; }
 
-/* ➕ DESIGN DO BOTÃO DASHED PARA DIAS EM BRANCO */
 .btn-incluir-vazio { background: transparent; color: #2563eb; border: 1px dashed #2563eb; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
 .btn-incluir-vazio:hover { background: #eff6ff; border-style: solid; }
 
@@ -365,7 +419,6 @@ th { background-color: #f9fafb; color: #374151; }
 .status-txt.folga { background: #f3f4f6; color: #4b5563; }
 .status-txt.falta { background: #fef2f2; color: #b91c1c; }
 
-/* MODAL STYLES */
 .modal-backdrop { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); display: flex; align-items: center; justify-content: center; z-index: 100; }
 .modal-card { background: white; padding: 1.5rem; border-radius: 8px; width: 100%; max-width: 440px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
 .modal-titulo { margin: 0 0 0.5rem 0; font-size: 1.2rem; font-weight: bold; color: #111827; }
@@ -378,7 +431,6 @@ th { background-color: #f9fafb; color: #374151; }
 .msg-erro { background: #fef2f2; color: #991b1b; padding: 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 500; margin: 0; }
 .modal-acoes { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem; align-items: center; }
 
-/* ❌ BOTÃO DE EXCLUSÃO LÓGICA (DESIGN SEGURO) */
 .btn-excluir-logico { padding: 0.5rem 1rem; border: 1px solid #fca5a5; background: #fef2f2; color: #b91c1c; border-radius: 6px; font-size: 0.85rem; font-weight: bold; cursor: pointer; transition: background 0.2s; }
 .btn-excluir-logico:hover { background: #fee2e2; }
 
