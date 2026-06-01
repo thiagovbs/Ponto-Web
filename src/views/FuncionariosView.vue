@@ -9,7 +9,7 @@ interface Usuario {
   cpf: string;
   perfil: string;
   horarioBaseId: string | null;
-  dataInicioEscala: string | null; // 🔹 Adicionado na tipagem do TypeScript
+  dataInicioEscala: string | null;
 }
 
 interface Jornada {
@@ -17,6 +17,7 @@ interface Jornada {
   descricao: string;
 }
 
+// Controle do Modal
 const modalAberto = ref(false);
 
 const funcionarios = ref<Usuario[]>([]);
@@ -56,10 +57,6 @@ const abrirFormulario = (func: Usuario | null = null) => {
   mensagemErro.value = '';
 
   if (func) {
-    modalAberto.value = true;
-    mensagemSucesso.value = '';
-    mensagemErro.value = '';
-
     idUsuarioEdicao.value = func.id;
     nome.value = func.nome;
     cpf.value = func.cpf;
@@ -67,7 +64,6 @@ const abrirFormulario = (func: Usuario | null = null) => {
     perfil.value = func.perfil;
     horarioBaseId.value = func.horarioBaseId || '';
     
-    // 🔹 Trata a data vinda do banco (YYYY-MM-DDTHH:mm:ss...) para o padrão HTML (YYYY-MM-DD)
     if (func.dataInicioEscala) {
       dataInicioEscala.value = func.dataInicioEscala.split('T')[0];
     } else {
@@ -80,8 +76,10 @@ const abrirFormulario = (func: Usuario | null = null) => {
     senha.value = '';
     perfil.value = 'FUNCIONARIO';
     horarioBaseId.value = '';
-    dataInicioEscala.value = ''; // 🔹 Limpa no novo cadastro
+    dataInicioEscala.value = '';
   }
+  // 🔒 Ativa a flag de visualização do modal de forma limpa
+  modalAberto.value = true;
 };
 
 const fecharFormulario = () => {
@@ -105,13 +103,11 @@ const salvarColaborador = async () => {
     return;
   }
 
-  // 🔹 Montagem do payload estruturado
   const payload: any = {
     nome: nome.value,
     cpf: cpf.value,
     perfil: perfil.value,
     horarioBaseId: perfil.value === 'FUNCIONARIO' && horarioBaseId.value ? horarioBaseId.value : null,
-    // Se for admin, ignora a data. Se for funcionário, envia se preenchido.
     dataInicioEscala: perfil.value === 'FUNCIONARIO' && dataInicioEscala.value ? dataInicioEscala.value : null
   };
 
@@ -149,7 +145,6 @@ const excluirColaborador = async (id: string) => {
   }
 };
 
-// Função para formatar exibição de data na tabela (Converte YYYY-MM-DD para DD/MM/YYYY)
 const formatarDataTabela = (dataISO: string | null) => {
   if (!dataISO) return '-';
   const apenasData = dataISO.split('T')[0];
@@ -171,7 +166,7 @@ const formatarDataTabela = (dataISO: string | null) => {
       <p v-if="mensagemSucesso" class="sucesso">{{ mensagemSucesso }}</p>
       <p v-if="mensagemErro" class="erro">{{ mensagemErro }}</p>
 
-      <div v-if="idUsuarioEdicao !== null || nome !== '' || idUsuarioEdicao === null && modalAberto" class="modal-overlay">
+      <div v-if="modalAberto" class="modal-overlay">
         <div class="modal-card">
           <h3>{{ idUsuarioEdicao ? 'Editar Funcionário' : 'Cadastrar Novo Funcionário' }}</h3>
 
@@ -232,22 +227,24 @@ const formatarDataTabela = (dataISO: string | null) => {
               <th>Nome</th>
               <th>CPF</th>
               <th>Perfil</th>
-              <th>Início da Escala</th> <th>Ações</th>
+              <th>Início da Escala</th> 
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="f in funcionarios" :key="f.id">
-              <td>{{ f.nome }}</td>
+              <td><strong>{{ f.nome }}</strong></td>
               <td>{{ f.cpf }}</td>
               <td>
                 <span :class="f.perfil === 'ADMIN' ? 'badge admin' : 'badge func'">
                   {{ f.perfil }}
                 </span>
               </td>
-              <td>{{ formatarDataTabela(f.dataInicioEscala) }}</td> <td>
-                <div style="display: flex; gap: 8px;">
-                  <button class="btn-edit" @click="abrirFormulario(f)">Editar</button>
-                  <button class="btn-edit" style="color: #dc2626; border-color: #fca5a5;" @click="excluirColaborador(f.id)">Excluir</button>
+              <td>{{ formatarDataTabela(f.dataInicioEscala) }}</td> 
+              <td>
+                <div class="acoes-row">
+                  <button class="btn-edit" @click="abrirFormulario(f)">✏️ Editar</button>
+                  <button class="btn-delete" @click="excluirColaborador(f.id)">🗑️ Excluir</button>
                 </div>
               </td>
             </tr>
@@ -259,37 +256,58 @@ const formatarDataTabela = (dataISO: string | null) => {
 </template>
 
 <style scoped>
-.dashboard-layout { display: flex; min-height: 100vh; background-color: #f8fafc; font-family: sans-serif; width: 100%; overflow-x: hidden;}
-.content-area { flex: 1; padding: 2rem; min-width: 0; margin-left: 250px;}
-.content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-.content-header h2 { margin: 0; color: #1e293b; }
+/* 📐 AJUSTE DINÂMICO DE VIEW: Totalmente compatível com a Sidebar Colapsável */
+.dashboard-layout { 
+  display: flex; 
+  min-height: 100vh; 
+  background-color: #f8fafc; 
+  font-family: sans-serif; 
+  width: 100%; 
+}
 
+.content-area { 
+  flex: 1; 
+  padding: 2rem; 
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+.content-header h2 { margin: 0; color: #1e293b; font-size: 1.5rem; }
+
+/* MODAL LAYOUT */
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); display: flex; justify-content: center; align-items: center; z-index: 999; }
-.modal-card { background: white; padding: 2rem; border-radius: 8px; width: 450px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-.modal-card h3 { margin-top: 0; color: #1e293b; margin-bottom: 1.5rem; }
+.modal-card { background: white; padding: 2rem; border-radius: 8px; width: 100%; max-width: 440px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+.modal-card h3 { margin-top: 0; color: #1e293b; margin-bottom: 1.5rem; font-size: 1.2rem; }
 
 .form-group { display: flex; flex-direction: column; margin-bottom: 1.25rem; }
-.form-group label { font-size: 0.9rem; font-weight: 600; color: #475569; margin-bottom: 0.4rem; }
-.form-group input, .form-group select { padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem; }
+.form-group label { font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 0.4rem; }
+.form-group input, .form-group select { padding: 0.55rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem; background: white; outline: none; box-sizing: border-box; width: 100%; }
+.form-group input:focus, .form-group select:focus { border-color: #2563eb; }
 
 .form-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem; }
-.btn-primary { background: #2563eb; color: white; cursor: pointer; font-weight: bold; border: none; padding: 0.65rem 1.5rem; border-radius: 6px; }
+.btn-primary { background: #2563eb; color: white; cursor: pointer; font-weight: bold; border: none; padding: 0.6rem 1.5rem; border-radius: 6px; font-size: 0.9rem; transition: background 0.2s; }
 .btn-primary:hover { background: #1d4ed8; }
-.btn-cancel { background: #64748b; color: white; cursor: pointer; border: none; padding: 0.65rem 1rem; border-radius: 6px; }
+.btn-cancel { background: #64748b; color: white; cursor: pointer; border: none; padding: 0.6rem 1.25rem; border-radius: 6px; font-weight: 500; font-size: 0.9rem; transition: background 0.2s; }
+.btn-cancel:hover { background: #475569; }
 
-table { width: 100%; border-collapse: collapse; margin-top: 1rem; text-align: left; }
-th, td { padding: 0.85rem; border-bottom: 1px solid #e2e8f0; font-size: 0.95rem; }
+/* REGRAS DA TABELA */
+.table-container { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 1.25rem; overflow-x: auto; margin-top: 1rem; }
+table { width: 100%; border-collapse: collapse; text-align: left; }
+th, td { padding: 0.85rem; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; vertical-align: middle; }
 th { background-color: #f8fafc; color: #475569; font-weight: 600; }
 
-.btn-edit { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: #334155; font-weight: 500; }
+.acoes-row { display: flex; gap: 8px; }
+.btn-edit { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 0.4rem 0.75rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: #334155; font-weight: 500; transition: background 0.1s; }
 .btn-edit:hover { background: #e2e8f0; }
+.btn-delete { background: #fff5f5; border: 1px solid #fca5a5; padding: 0.4rem 0.75rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: #dc2626; font-weight: 500; transition: background 0.1s; }
+.btn-delete:hover { background: #fee2e2; }
 
-.sucesso { color: #10b981; margin-bottom: 1rem; font-weight: bold; }
-.erro { color: #dc2626; margin-bottom: 1rem; font-weight: bold; }
-.table-container { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 1rem; overflow-x: auto; }
+.sucesso { color: #10b981; margin-bottom: 1rem; font-weight: bold; font-size: 0.9rem; background: #ecfdf5; padding: 0.5rem; border-radius: 4px; }
+.erro { color: #dc2626; margin-bottom: 1rem; font-weight: bold; font-size: 0.9rem; background: #fef2f2; padding: 0.5rem; border-radius: 4px; }
 
-/* Badges de estilo para os perfis */
-.badge { padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+/* BADGES */
+.badge { padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
 .badge.admin { background: #fee2e2; color: #991b1b; }
 .badge.func { background: #e0f2fe; color: #0369a1; }
 </style>

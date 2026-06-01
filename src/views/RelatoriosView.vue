@@ -57,8 +57,6 @@ const imprimirEspelho = async () => {
   if (!funcionarioSelecionado.value) return;
   
   try {
-    // 1. Faz a chamada usando a instância do Axios (que já possui o Token no Header interceptor)
-    // Definimos o responseType como 'blob' para o Axios saber que vai receber um arquivo binário
     const response = await api.get(`/relatorios/funcionario/${funcionarioSelecionado.value}/imprimir`, {
       params: { 
         mes: mesSelecionado.value, 
@@ -67,29 +65,24 @@ const imprimirEspelho = async () => {
       responseType: 'blob' 
     });
 
-    // 2. Cria um link temporário em memória para o arquivo binário recebido
     const blob = new Blob([response.data], { type: 'application/pdf' });
     const urlBlob = window.URL.createObjectURL(blob);
     
-    // 3. Cria um elemento <a> invisível para forçar o download com o nome correto
     const linkDownload = document.createElement('a');
     linkDownload.href = urlBlob;
     
-    // Define o nome do arquivo que o usuário vai salvar
     const nomeArquivo = `espelho_ponto_${mesSelecionado.value}_${anoSelecionado.value}.pdf`;
     linkDownload.setAttribute('download', nomeArquivo);
     
-    // 4. Simula o clique do usuário para abrir a janela de salvar/imprimir do sistema operacional
     document.body.appendChild(linkDownload);
     linkDownload.click();
     
-    // 5. Limpa os elementos da memória após o disparo do download
     document.body.removeChild(linkDownload);
     window.URL.revokeObjectURL(urlBlob);
 
   } catch (error) {
     console.error("Erro ao gerar ou baixar o arquivo PDF protegido:", error);
-    alert("Falha ao gerar o PDF de impressão. Verifique suas permissões de administrador.");
+    alert("Falha ao gerar o PDF de impressão. Verifique suas permissoes de administrador.");
   }
 };
 
@@ -109,7 +102,7 @@ const abrirModalInclusao = (dataDoDia: string) => {
   modoModal.value = 'INCLUIR';
   modalAjuste.batidaId = '';
   modalAjuste.dataBatida = dataDoDia;
-  modalAjuste.novaHora = '08:00'; // Sugestão limpa padrão de início de expediente
+  modalAjuste.novaHora = '08:00'; 
   modalAjuste.justificativa = '';
   modalAjuste.erro = '';
   modalAjuste.carregando = false;
@@ -262,10 +255,23 @@ onMounted(async () => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="linha in linhasRelatorio" :key="linha.data">
+            <tr v-for="linha in linhasRelatorio" :key="linha.data" :class="{ 'linha-afastada': linha.status === 'AFASTADO' }">
               <td>{{ linha.data.split('-').reverse().join('/') }}</td>
-              <td><span :class="['status-txt', linha.status.toLowerCase().replace(/\s+/g, '-')]">{{ linha.status }}</span></td>
+              
               <td>
+                <span v-if="linha.status === 'AFASTADO'" class="status-txt afastado">
+                  AFASTAMENTO
+                </span>
+                <span v-else :class="['status-txt', linha.status.toLowerCase().replace(/\s+/g, '-').normalize('NFD').replace(/[\u0300-\u036f]/g, '')]">
+                  {{ linha.status }}
+                </span>
+              </td>
+              
+              <td v-if="linha.status === 'AFASTADO'" class="coluna-afastamento-texto">
+                🏝️ {{ linha.observacao || 'Colaborador sob Regime de Afastamento Legal / Férias' }}
+              </td>
+
+              <td v-else>
                 <div v-if="linha.batidas.length > 0" class="container-batidas">
                   <div 
                     v-for="batida in linha.batidas" 
@@ -304,8 +310,9 @@ onMounted(async () => {
                   </button>
                 </div>
               </td>
+
               <td>{{ linha.horasTrabalhadas }}</td>
-              <td :style="{ color: linha.saldoDoDia.startsWith('-') ? '#dc2626' : '#10b981' }">
+              <td :style="{ color: linha.saldoDoDia.startsWith('-') ? '#dc2626' : '#10b981', fontWeight: linha.status === 'AFASTADO' ? 'bold' : 'normal' }">
                 {{ linha.saldoDoDia }}
               </td>
             </tr>
@@ -368,7 +375,7 @@ onMounted(async () => {
 
 <style scoped>
 .layout { display: flex; min-height: 100vh; background-color: #f8fafc; }
-.content { margin-left: 250px; padding: 2rem; flex: 1; font-family: sans-serif; }
+.content { padding: 2rem; flex: 1; font-family: sans-serif; }
 h2 { color: #0f172a; margin: 0; }
 p { color: #64748b; margin: 0.25rem 0 1.5rem 0; }
 
@@ -377,7 +384,6 @@ p { color: #64748b; margin: 0.25rem 0 1.5rem 0; }
 .filtro-group label { font-size: 0.8rem; font-weight: bold; color: #475569; }
 .filtro-group select { padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; background: white; height: 38px; }
 
-/* 🖨️ GRUPO DO ESTILO DO BOTÃO DE IMPRESSÃO */
 .filtro-group-btn { display: flex; align-items: flex-end; }
 .btn-imprimir { background-color: #0f172a; color: white; border: none; border-radius: 6px; padding: 0 1.25rem; height: 38px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s; }
 .btn-imprimir:hover { background-color: #1e293b; }
@@ -395,6 +401,27 @@ p { color: #64748b; margin: 0.25rem 0 1.5rem 0; }
 table { width: 100%; border-collapse: collapse; text-align: left; }
 th, td { padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-size: 0.9rem; }
 th { background-color: #f9fafb; color: #374151; }
+
+/* 🏝️ REGRAS DE DESIGN ADICIONADAS PARA O MODULO DE AFASTAMENTOS */
+.linha-afastada {
+  background-color: #f0fdf4 !important; /* Fundo verde menta bem leve indicando abono regular */
+}
+.coluna-afastamento-texto {
+  color: #166534;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  background-color: #e8f5e9;
+  text-transform: uppercase;
+  border-radius: 4px;
+  padding: 0.6rem !important;
+  text-align: left;
+  padding-left: 1rem !important;
+}
+.status-txt.afastado {
+  background: #dcfce7;
+  color: #166534;
+}
 
 .container-batidas { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
 .tag-batida { display: inline-flex; align-items: center; gap: 4px; background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: 500; font-family: monospace; font-size: 0.85rem; cursor: pointer; border: 1px solid #e5e7eb; position: relative; }

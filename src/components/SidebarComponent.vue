@@ -1,7 +1,15 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
+
+// 🔄 ESTADO REATIVO: Controla se o menu está recolhido (true) ou expandido (false)
+const isCollapsed = ref(false);
+
+const toggleSidebar = () => {
+  isCollapsed.value = !isCollapsed.value;
+};
 
 const logout = () => {
   localStorage.removeItem('ponto_token');
@@ -11,22 +19,57 @@ const logout = () => {
 </script>
 
 <template>
-  <aside class="sidebar">
+  <aside :class="['sidebar', { 'collapsed': isCollapsed }]">
     <div class="logo">
-      <h3>Ponto Admin</h3>
+      <h3 v-if="!isCollapsed">Ponto Admin</h3>
+      <h3 v-else>⏱️</h3>
+      
+      <button @click="toggleSidebar" class="btn-toggle" :title="isCollapsed ? 'Expandir Menu' : 'Recolher Menu'">
+        {{ isCollapsed ? '❯' : '❮' }}
+      </button>
     </div>
+    
     <nav class="menu">
-      <router-link to="/dashboard" class="menu-item" active-class="active">📊 Dashboard</router-link>
-      <router-link to="/jornadas" class="menu-item" active-class="active">⏱️ Configurar Horários</router-link>
-      <router-link to="/funcionarios" class="menu-item" active-class="active">👥 Funcionários</router-link>
-      <router-link to="/relatorios" class="menu-item" active-class="active">📋 Espelho de Ponto</router-link>
-      <router-link to="/auditoria" class="menu-item" active-class="active">🛡️ Logs de Auditoria</router-link>
+      <router-link to="/dashboard" class="menu-item" active-class="active">
+        <span class="menu-icon">📊</span>
+        <span v-if="!isCollapsed" class="menu-text">Dashboard</span>
+      </router-link>
+      
+      <router-link to="/jornadas" class="menu-item" active-class="active">
+        <span class="menu-icon">⏱️</span>
+        <span v-if="!isCollapsed" class="menu-text">Configurar Horários</span>
+      </router-link>
+      
+      <router-link to="/funcionarios" class="menu-item" active-class="active">
+        <span class="menu-icon">👥</span>
+        <span v-if="!isCollapsed" class="menu-text">Funcionários</span>
+      </router-link>
+
+      <router-link to="/afastamentos" class="menu-item" active-class="active">
+        <span class="menu-icon">🏝️</span>
+        <span v-if="!isCollapsed" class="menu-text">Afastamentos e Férias</span>
+      </router-link>
+      
+      <router-link to="/relatorios" class="menu-item" active-class="active">
+        <span class="menu-icon">📋</span>
+        <span v-if="!isCollapsed" class="menu-text">Espelho de Ponto</span>
+      </router-link>
+      
+      <router-link to="/auditoria" class="menu-item" active-class="active">
+        <span class="menu-icon">🛡️</span>
+        <span v-if="!isCollapsed" class="menu-text">Logs de Auditoria</span>
+      </router-link>
     </nav>
-    <button @click="logout" class="btn-logout">🚪 Sair</button>
+    
+    <button @click="logout" class="btn-logout">
+      <span class="menu-icon">🚪</span>
+      <span v-if="!isCollapsed" class="menu-text">Sair</span>
+    </button>
   </aside>
 </template>
 
 <style scoped>
+/* 📐 DIMENSÕES E TRANSIÇÃO SUAVE PADRÃO (EXPANDIDO) */
 .sidebar {
   width: 250px;
   background-color: #1f2937;
@@ -34,27 +77,143 @@ const logout = () => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  position: fixed;
+  position: sticky;
+  left: 0;
+  top: 0;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Animação fluida de abertura e fechamento */
+  z-index: 100;
 }
-.logo { padding: 2rem 1.5rem; border-bottom: 1px solid #374151; }
-.logo h3 { margin: 0; color: #3b82f6; }
-.menu { flex: 1; display: flex; flex-direction: column; padding: 1.5rem 0; gap: 0.5rem; }
-.menu-item {
-  padding: 0.75rem 1.5rem;
-  color: #9ca3af;
-  text-decoration: none;
-  font-weight: 500;
-  transition: all 0.2s;
+
+/* 📐 LARGURA REDUZIDA QUANDO FOR COLAPSADO */
+.sidebar.collapsed {
+  width: 68px;
 }
-.menu-item:hover { background-color: #374151; color: white; }
-.active { background-color: #2563eb; color: white; border-left: 4px solid #60a5fa; }
-.btn-logout {
-  padding: 1rem;
-  background-color: #dc2626;
-  color: white;
+
+/* LOGO / HEADER DO COMPONENTE */
+.logo { 
+  padding: 2rem 1.5rem; 
+  border-bottom: 1px solid #374151; 
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 80px;
+  box-sizing: border-box;
+}
+
+.sidebar.collapsed .logo {
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.logo h3 { 
+  margin: 0; 
+  color: #3b82f6; 
+  white-space: nowrap;
+}
+
+/* BOTÃO PEQUENO DE ACIONAMENTO (SETINHAS) */
+.btn-toggle {
+  background: #374151;
   border: none;
+  color: #9ca3af;
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-toggle:hover {
+  background: #4b5563;
+  color: white;
+}
+.sidebar.collapsed .btn-toggle {
+  position: absolute;
+  top: 65px; /* Mantém centralizado logo abaixo do emoji do topo */
+}
+
+/* ITENS DO MENU */
+.menu { 
+  flex: 1; 
+  display: flex; 
+  flex-direction: column; 
+  padding: 1.5rem 0; 
+  gap: 0.5rem; 
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  color: #d1d5db;
+  text-decoration: none;
+  transition: all 0.2s;
+  white-space: nowrap;
+  gap: 10px;
+}
+
+.menu-item:hover {
+  background-color: #374151;
+  color: white;
+}
+
+.menu-item.active {
+  background-color: #3b82f6;
+  color: white;
   font-weight: bold;
 }
-.btn-logout:hover { background-color: #b91c1c; }
+
+/* Alinhamento centralizado quando colapsado */
+.sidebar.collapsed .menu-item {
+  justify-content: center;
+  padding: 0.75rem 0;
+  gap: 0;
+}
+
+.menu-icon {
+  font-size: 1.2rem;
+  display: inline-block;
+  text-align: center;
+  width: 24px;
+}
+
+/* Pequena animação de surgimento para o texto quando expandir */
+.menu-text {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+/* BOTÃO DE SAIR (LOGOUT) */
+.btn-logout {
+  background: transparent;
+  border: none;
+  color: #f87171;
+  padding: 1.5rem;
+  text-align: left;
+  cursor: pointer;
+  border-top: 1px solid #374151;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.btn-logout:hover {
+  background-color: #374151;
+}
+
+.sidebar.collapsed .btn-logout {
+  justify-content: center;
+  padding: 1.5rem 0;
+  gap: 0;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateX(-6px); }
+  to { opacity: 1; transform: translateX(0); }
+}
 </style>

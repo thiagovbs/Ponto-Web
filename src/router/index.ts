@@ -33,6 +33,12 @@ const routes: RouteRecordRaw[] = [
     component: AuditoriaView, 
     meta: { requiresAuth: true } 
   },
+  {
+  path: '/afastamentos',
+  name: 'Afastamentos',
+  component: () => import('../views/AfastamentosView.vue'),
+  meta: { requiresAdmin: true } // Se o seu sistema tiver proteção por rotas
+}
 ];
 
 const router = createRouter({

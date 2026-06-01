@@ -107,7 +107,7 @@ onMounted(async () => {
 
 <style scoped>
 .layout { display: flex; min-height: 100vh; background-color: #f8fafc; }
-.content { margin-left: 250px; padding: 2rem; flex: 1; font-family: sans-serif; }
+.content { padding: 2rem; flex: 1; font-family: sans-serif; }
 .dashboard-header h2 { color: #0f172a; margin: 0; font-size: 1.75rem; }
 .dashboard-header p { color: #64748b; margin: 0.25rem 0 2rem 0; }
 

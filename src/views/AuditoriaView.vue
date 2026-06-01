@@ -215,7 +215,7 @@ onMounted(async () => {
 
 <style scoped>
   .layout { display: flex; min-height: 100vh; }
-  .content { margin-left: 250px; padding: 2rem; flex: 1; font-family: sans-serif; background-color: #f1f5f9; }
+  .content {padding: 2rem; flex: 1; font-family: sans-serif; background-color: #f1f5f9; }
   h2 { color: #1f2937; margin-top: 0; margin-bottom: 2rem; }
 
   .filtros-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem; margin-bottom: 2rem; background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
