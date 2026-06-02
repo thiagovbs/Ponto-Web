@@ -5,6 +5,8 @@ import FuncionariosView from '../views/FuncionariosView.vue';
 import RelatoriosView from '../views/RelatoriosView.vue';
 import JornadasView from '../views/JornadasView.vue';
 import AuditoriaView from '../views/AuditoriaView.vue';
+import AfastamentoView from '../views/AfastamentosView.vue';
+import FiscalizacaoView from '../views/FiscalizacaoView.vue';
 
 const routes: RouteRecordRaw[] = [
   { path: '/', component: LoginView },
@@ -34,11 +36,15 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true } 
   },
   {
-  path: '/afastamentos',
-  name: 'Afastamentos',
-  component: () => import('../views/AfastamentosView.vue'),
-  meta: { requiresAdmin: true } // Se o seu sistema tiver proteção por rotas
-}
+    path: '/afastamentos',
+    component: AfastamentoView, 
+    meta: { requiresAdmin: true } 
+  },
+  {
+    path: '/fiscalizacao',
+    component: FiscalizacaoView, 
+    meta: { requiresAdmin: true } 
+  }
 ];
 
 const router = createRouter({

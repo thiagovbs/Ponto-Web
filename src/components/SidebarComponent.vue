@@ -54,6 +54,11 @@ const logout = () => {
         <span class="menu-icon">📋</span>
         <span v-if="!isCollapsed" class="menu-text">Espelho de Ponto</span>
       </router-link>
+
+      <router-link to="/fiscalizacao" class="menu-item" active-class="active">
+        <span class="menu-icon">⚖️</span>
+        <span v-if="!isCollapsed" class="menu-text">Fiscalização MTE</span>
+      </router-link>      
       
       <router-link to="/auditoria" class="menu-item" active-class="active">
         <span class="menu-icon">🛡️</span>
