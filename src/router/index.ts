@@ -7,6 +7,10 @@ import JornadasView from '../views/JornadasView.vue';
 import AuditoriaView from '../views/AuditoriaView.vue';
 import AfastamentoView from '../views/AfastamentosView.vue';
 import FiscalizacaoView from '../views/FiscalizacaoView.vue';
+import SetoresView from '../views/SetoresView.vue';
+import FiliaisView from '../views/FiliaisView.vue';
+import SuperAdminView from '../views/SuperAdminView.vue';
+
 
 const routes: RouteRecordRaw[] = [
   { path: '/', component: LoginView },
@@ -43,6 +47,21 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/fiscalizacao',
     component: FiscalizacaoView, 
+    meta: { requiresAdmin: true } 
+  },
+  {
+    path: '/setores',
+    component: SetoresView, 
+    meta: { requiresAdmin: true } 
+  },
+  {
+    path: '/filiais',
+    component: FiliaisView, 
+    meta: { requiresAdmin: true } 
+  },
+  {
+    path: '/super-admin',
+    component: SuperAdminView, 
     meta: { requiresAdmin: true } 
   }
 ];

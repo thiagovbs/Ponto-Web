@@ -21,6 +21,7 @@ const realizarLogin = async () => {
     // Salva o token e os dados do admin no navegador
     localStorage.setItem('ponto_token', resposta.data.token);
     localStorage.setItem('ponto_user', JSON.stringify(resposta.data.usuario));
+    localStorage.setItem('empresaId', resposta.data.usuario.empresaId);
 
     // Redireciona para o painel principal
     router.push('/dashboard');

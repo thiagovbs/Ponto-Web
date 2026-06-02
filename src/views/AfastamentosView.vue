@@ -165,7 +165,7 @@ onMounted(carregarDados);
     <SidebarComponent />
     <main class="content">
       <h2>🏝️ Gestão de Férias e Afastamentos</h2>
-      <p>Lance e gerencie períodos de licenças, atestados e férias para suspensão temporária do controle de ponto.</p>
+      <p>Lance e gerencie períodos de licenças, atestados e férias para suspension temporária do controle de ponto.</p>
 
       <p v-if="erroGeral" class="msg-erro" style="margin-bottom: 1.5rem;">{{ erroGeral }}</p>
 
@@ -264,42 +264,44 @@ onMounted(carregarDados);
           <h3>Retificar Registro de Ausência</h3>
           <p class="modal-sub">Alterando dados de: <strong>{{ modalEdicao.usuarioNome }}</strong></p>
 
-          <div class="modal-inputs">
-            <div class="input-group">
-              <label>Tipo de Ocorrência</label>
-              <select v-model="modalEdicao.tipo">
-                <option value="FERIAS">Férias Regulamentares</option>
-                <option value="ATESTADO_MEDICO">Atestado Médico (MTE/CID)</option>
-                <option value="LICENCA_MATERNIDADE">Licença Maternidade</option>
-                <option value="LICENCA_PATERNIDADE">Licença Paternidade</option>
-                <option value="AFASTAMENTO_INSS">Afastamento por Auxílio-Doença (INSS)</option>
-                <option value="OUTROS">Outras Licenças / Abonos Justificados</option>
-              </select>
-            </div>
+          <div class="modal-corpo-scroll">
+            <div class="modal-inputs">
+              <div class="input-group">
+                <label>Tipo de Ocorrência</label>
+                <select v-model="modalEdicao.tipo">
+                  <option value="FERIAS">Férias Regulamentares</option>
+                  <option value="ATESTADO_MEDICO">Atestado Médico (MTE/CID)</option>
+                  <option value="LICENCA_MATERNIDADE">Licença Maternidade</option>
+                  <option value="LICENCA_PATERNIDADE">Licença Paternidade</option>
+                  <option value="AFASTAMENTO_INSS">Afastamento por Auxílio-Doença (INSS)</option>
+                  <option value="OUTROS">Outras Licenças / Abonos Justificados</option>
+                </select>
+              </div>
 
-            <div class="input-group">
-              <label>Nova Data de Início</label>
-              <input type="date" v-model="modalEdicao.dataInicio" />
-            </div>
+              <div class="input-group">
+                <label>Nova Data de Início</label>
+                <input type="date" v-model="modalEdicao.dataInicio" />
+              </div>
 
-            <div class="input-group">
-              <label>Nova Data de Término</label>
-              <input type="date" v-model="modalEdicao.dataFim" />
-            </div>
+              <div class="input-group">
+                <label>Nova Data de Término</label>
+                <input type="date" v-model="modalEdicao.dataFim" />
+              </div>
 
-            <div class="input-group">
-              <label>Motivo da Alteração / Justificativa</label>
-              <textarea v-model="modalEdicao.justificativa" rows="3"></textarea>
-            </div>
+              <div class="input-group">
+                <label>Motivo da Alteração / Justificativa</label>
+                <textarea v-model="modalEdicao.justificativa" rows="3"></textarea>
+              </div>
 
-            <p v-if="modalEdicao.erro" class="msg-erro">{{ modalEdicao.erro }}</p>
-
-            <div class="modal-acoes">
-              <button @click="modalEdicao.aberto = false" class="btn-cancelar" :disabled="modalEdicao.carregando">Cancelar</button>
-              <button @click="salvarAlteracao" class="btn-salvar-modal" :disabled="modalEdicao.carregando">
-                {{ modalEdicao.carregando ? 'Salvando...' : 'Gravar Alterações' }}
-              </button>
+              <p v-if="modalEdicao.erro" class="msg-erro">{{ modalEdicao.erro }}</p>
             </div>
+          </div>
+
+          <div class="modal-acoes">
+            <button @click="modalEdicao.aberto = false" class="btn-cancelar" :disabled="modalEdicao.carregando">Cancelar</button>
+            <button @click="salvarAlteracao" class="btn-salvar-modal" :disabled="modalEdicao.carregando">
+              {{ modalEdicao.carregando ? 'Salvando...' : 'Gravar Alterações' }}
+            </button>
           </div>
         </div>
       </div>
@@ -355,12 +357,49 @@ th { background-color: #f8fafc; color: #475569; font-weight: 600; }
 .sem-dados { text-align: center; padding: 2rem; color: #94a3b8; font-size: 0.95rem; }
 .msg-erro { background: #fef2f2; color: #991b1b; padding: 0.6rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; }
 
-/* MODAL RETIFICAÇÃO */
-.modal-backdrop { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 200; }
-.modal-card { background: white; padding: 1.5rem; border-radius: 8px; width: 100%; max-width: 440px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
-.modal-sub { font-size: 0.9rem; color: #475569; margin: -0.5rem 0 1.25rem 0; }
+/* ─── ENGENHARIA DO MODAL CONTRA ESTOUROS VERTICAIS ─── */
+.modal-backdrop { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 1rem; box-sizing: border-box; }
+
+.modal-card { 
+  background: white; 
+  padding: 1.5rem; 
+  border-radius: 8px; 
+  width: 100%; 
+  max-width: 440px; 
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); 
+  
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+.modal-sub { font-size: 0.9rem; color: #475569; margin: -0.5rem 0 1.25rem 0; flex-shrink: 0; }
+.modal-card h3 { flex-shrink: 0; margin-top: 0; }
+
+.modal-corpo-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 0.4rem;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+.modal-corpo-scroll::-webkit-scrollbar { width: 5px; }
+.modal-corpo-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
 .modal-inputs { display: flex; flex-direction: column; gap: 1rem; }
-.modal-acoes { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem; }
+
+.modal-acoes { 
+  display: flex; 
+  justify-content: flex-end; 
+  gap: 0.5rem; 
+  margin-top: auto; 
+  flex-shrink: 0;
+  background: white;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e2e8f0;
+}
 .btn-cancelar { padding: 0.5rem 1rem; border: 1px solid #d1d5db; background: white; border-radius: 6px; font-size: 0.85rem; color: #374151; cursor: pointer; }
 .btn-salvar-modal { padding: 0.5rem 1rem; border: none; background: #2563eb; color: white; border-radius: 6px; font-size: 0.85rem; font-weight: 500; cursor: pointer; }
 .btn-salvar-modal:hover { background: #1d4ed8; }

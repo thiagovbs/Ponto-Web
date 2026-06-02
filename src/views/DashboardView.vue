@@ -12,6 +12,7 @@ ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
 const totalFuncionarios = ref(0);
 const batidasHoje = ref(0);
 const feed = ref<any[]>([]);
+const graficoPronto = ref(false); // 🟢 Flag de controle para evitar quebras de renderização no Chart.js
 
 // Configurações reativas do Gráfico
 const chartData = ref<any>({
@@ -34,18 +35,21 @@ onMounted(async () => {
     batidasHoje.value = resposta.data.batidasHoje;
     feed.value = resposta.data.feedAtividades;
 
-    // Monta a estrutura de dados do gráfico vinda do backend
-    chartData.value = {
-      labels: resposta.data.graficoSemanal.labels,
-      datasets: [
-        {
-          label: 'Batidas de Ponto',
-          backgroundColor: '#3b82f6',
-          borderRadius: 6,
-          data: resposta.data.graficoSemanal.dados
-        }
-      ]
-    };
+    // 🟢 Proteção reativa: valida se a estrutura do gráfico existe antes de injetar
+    if (resposta.data.graficoSemanal && resposta.data.graficoSemanal.labels) {
+      chartData.value = {
+        labels: resposta.data.graficoSemanal.labels,
+        datasets: [
+          {
+            label: 'Batidas de Ponto',
+            backgroundColor: '#3b82f6',
+            borderRadius: 6,
+            data: resposta.data.graficoSemanal.dados
+          }
+        ]
+      };
+      graficoPronto.value = true; // Libera o gráfico para renderização segura
+    }
   } catch (error) {
     console.error('Erro ao carregar dados do dashboard:', error);
   }
@@ -82,7 +86,8 @@ onMounted(async () => {
         <div class="main-chart-container">
           <h3>Frequência Semanal (Total de Batidas)</h3>
           <div class="chart-wrapper">
-            <Bar v-if="chartData.labels.length > 0" :data="chartData" :options="chartOptions" />
+            <Bar v-if="graficoPronto" :data="chartData" :options="chartOptions" />
+            <div v-else class="feed-vazio" style="padding-top: 5rem;">Carregando indicadores...</div>
           </div>
         </div>
 

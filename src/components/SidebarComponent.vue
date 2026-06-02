@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
@@ -7,9 +7,28 @@ const router = useRouter();
 // 🔄 ESTADO REATIVO: Controla se o menu está recolhido (true) ou expandido (false)
 const isCollapsed = ref(false);
 
+// 🔒 CONTROLE SAAS: Guarda se o usuário atual possui a credencial master do sistema
+const ehSuperAdmin = ref(false);
+
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value;
 };
+
+const verificarPerfilMestre = () => {
+  try {
+    const dadosUsuarioStr = localStorage.getItem('ponto_user');
+    if (dadosUsuarioStr) {
+      const usuario = JSON.parse(dadosUsuarioStr);
+      ehSuperAdmin.value = usuario.perfil === 'SUPER_ADMIN' || usuario.perfil === 'super_admin';
+    }
+  } catch (e) {
+    console.error('Erro ao ler credenciais do sidebar:', e);
+  }
+};
+
+onMounted(() => {
+  verificarPerfilMestre();
+});
 
 const logout = () => {
   localStorage.removeItem('ponto_token');
@@ -30,6 +49,11 @@ const logout = () => {
     </div>
     
     <nav class="menu">
+      <router-link v-if="ehSuperAdmin" to="/super-admin" class="menu-item item-master" active-class="active">
+        <span class="menu-icon">🚀</span>
+        <span v-if="!isCollapsed" class="menu-text">Módulo Master</span>
+      </router-link>
+
       <router-link to="/dashboard" class="menu-item" active-class="active">
         <span class="menu-icon">📊</span>
         <span v-if="!isCollapsed" class="menu-text">Dashboard</span>
@@ -38,6 +62,16 @@ const logout = () => {
       <router-link to="/jornadas" class="menu-item" active-class="active">
         <span class="menu-icon">⏱️</span>
         <span v-if="!isCollapsed" class="menu-text">Configurar Horários</span>
+      </router-link>
+
+      <router-link to="/filiais" class="menu-item" active-class="active">
+        <span class="menu-icon">🏢</span>
+        <span v-if="!isCollapsed" class="menu-text">Filiais</span>
+      </router-link>
+
+      <router-link to="/setores" class="menu-item" active-class="active">
+        <span class="menu-icon">📁</span>
+        <span v-if="!isCollapsed" class="menu-text">Setores</span>
       </router-link>
       
       <router-link to="/funcionarios" class="menu-item" active-class="active">
@@ -85,8 +119,9 @@ const logout = () => {
   position: sticky;
   left: 0;
   top: 0;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Animação fluida de abertura e fechamento */
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 100;
+  box-sizing: border-box; /* 🟢 CORREÇÃO: Garante que as bordas fiquem contidas na largura */
 }
 
 /* 📐 LARGURA REDUZIDA QUANDO FOR COLAPSADO */
@@ -103,6 +138,7 @@ const logout = () => {
   justify-content: space-between;
   height: 80px;
   box-sizing: border-box;
+  flex-shrink: 0; /* 🟢 CORREÇÃO: Evita que o cabeçalho amasse se a tela encolher */
 }
 
 .sidebar.collapsed .logo {
@@ -137,7 +173,7 @@ const logout = () => {
 }
 .sidebar.collapsed .btn-toggle {
   position: absolute;
-  top: 65px; /* Mantém centralizado logo abaixo do emoji do topo */
+  top: 65px;
 }
 
 /* ITENS DO MENU */
@@ -146,7 +182,18 @@ const logout = () => {
   display: flex; 
   flex-direction: column; 
   padding: 1.5rem 0; 
-  gap: 0.5rem; 
+  gap: 0.25rem; /* 🟢 Otimizado para não expandir demais verticalmente */
+  overflow-y: auto; /* 🟢 CORREÇÃO CRÍTICA: Se faltar espaço na tela, cria scroll sutil apenas no menu */
+  box-sizing: border-box;
+}
+
+/* Customização leve da barra de scroll interna para ficar invisível ou bem discreta */
+.menu::-webkit-scrollbar {
+  width: 4px;
+}
+.menu::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 10px;
 }
 
 .menu-item {
@@ -158,6 +205,7 @@ const logout = () => {
   transition: all 0.2s;
   white-space: nowrap;
   gap: 10px;
+  box-sizing: border-box; /* 🟢 CORREÇÃO: Alinha as paddings internas ao limite da sidebar */
 }
 
 .menu-item:hover {
@@ -169,6 +217,18 @@ const logout = () => {
   background-color: #3b82f6;
   color: white;
   font-weight: bold;
+}
+
+/* Estilo visual diferenciado para destacar o botão Master */
+.item-master {
+  border-left: 4px solid #7c3aed;
+  background-color: rgba(124, 58, 237, 0.05);
+}
+.item-master:hover {
+  background-color: rgba(124, 58, 237, 0.15);
+}
+.item-master.active {
+  background-color: #7c3aed !important;
 }
 
 /* Alinhamento centralizado quando colapsado */
@@ -205,6 +265,7 @@ const logout = () => {
   font-size: 1rem;
   width: 100%;
   box-sizing: border-box;
+  flex-shrink: 0; /* 🟢 CORREÇÃO: Garante que o botão de logout fique sempre fixo na base */
 }
 
 .btn-logout:hover {

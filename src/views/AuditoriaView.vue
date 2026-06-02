@@ -129,7 +129,7 @@ onMounted(async () => {
               <th>Detalhes da Operação</th>
             </tr>
           </thead>
-<tbody>
+          <tbody>
             <tr v-if="carregando">
               <td colspan="4" class="estado-tabela">⏳ Carregando logs de auditoria...</td>
             </tr>
@@ -166,7 +166,8 @@ onMounted(async () => {
                   </span>
                   <span v-else>
                     {{ log.detalhes }}
-                  </span> </div>
+                  </span>
+                </div>
 
                 <div v-else-if="log.entidade === 'BatidaPonto'">
                   <span v-if="log.acao === 'CREATE'">
@@ -214,11 +215,44 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-  .layout { display: flex; min-height: 100vh; }
-  .content {padding: 2rem; flex: 1; font-family: sans-serif; background-color: #f1f5f9; }
-  h2 { color: #1f2937; margin-top: 0; margin-bottom: 2rem; }
+.layout { display: flex; min-height: 100vh; background-color: #f1f5f9; }
+.content { padding: 2rem; flex: 1; font-family: sans-serif; box-sizing: border-box; }
+h2 { color: #1f2937; margin-top: 0; margin-bottom: 2rem; font-weight: 700; }
 
-  .filtros-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem; margin-bottom: 2rem; background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-  .campo-filtro { display: flex; flex-direction: column; gap: 0.4rem; }
-  .campo-filtro label { font-size: 0.8rem; font-weight: bold; color: #4b5563; text-transform: uppercase; }
+.filtros-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem; margin-bottom: 2rem; background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.campo-filtro { display: flex; flex-direction: column; gap: 0.4rem; }
+.campo-filtro label { font-size: 0.8rem; font-weight: bold; color: #4b5563; text-transform: uppercase; }
+.input-busca, .input-data { padding: 0.5rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; outline: none; background: white; }
+.input-busca:focus, .input-data:focus { border-color: #2563eb; }
+
+/* CONTAINER DA TABELA AUDITORIA */
+.table-container { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+table { width: 100%; border-collapse: collapse; text-align: left; }
+th, td { padding: 0.85rem; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; vertical-align: middle; }
+th { background-color: #f8fafc; color: #475569; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; }
+
+.col-data { white-space: nowrap; font-weight: 500; color: #334155; }
+.operador-info { display: flex; flex-direction: column; }
+.cpf-sub { font-size: 0.75rem; color: #94a3b8; margin-top: 0.1rem; }
+
+/* BADGES DE STATUS DA AÇÃO */
+.status-txt { font-size: 0.75rem; font-weight: bold; padding: 0.25rem 0.5rem; border-radius: 4px; display: inline-block; text-transform: uppercase; }
+.status-txt.regular { background-color: #ecfdf5; color: #065f46; }
+.status-txt.trabalho-em-folga { background-color: #eff6ff; color: #1d4ed8; }
+.status-txt.falta { background-color: #fef2f2; color: #991b1b; }
+.status-txt.atraso, .status-txt.padrao { background-color: #f1f5f9; color: #475569; }
+
+.col-detalhes { color: #334155; line-height: 1.4; }
+.coordenadas-bloco { display: block; font-size: 0.75rem; color: #64748b; margin-top: 0.25rem; font-family: monospace; }
+.estado-tabela { text-align: center; padding: 2.5rem !important; color: #64748b; font-style: italic; }
+.estado-tabela.erro { color: #dc2626; font-weight: bold; font-style: normal; }
+
+/* CONTROLES DA PAGINAÇÃO */
+.paginacao-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; border-top: 1px solid #e2e8f0; padding-top: 1rem; }
+.contador { font-size: 0.85rem; color: #64748b; font-weight: 500; }
+.controles-paginacao { display: flex; align-items: center; gap: 1rem; }
+.btn-pag { background: white; border: 1px solid #cbd5e1; color: #374151; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.85rem; cursor: pointer; font-weight: 500; transition: background 0.15s; }
+.btn-pag:hover:not(:disabled) { background: #f8fafc; border-color: #94a3b8; }
+.btn-pag:disabled { opacity: 0.5; cursor: not-allowed; }
+.indicador-pag { font-size: 0.85rem; color: #475569; font-weight: 600; }
 </style>

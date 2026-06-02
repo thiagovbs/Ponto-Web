@@ -34,6 +34,8 @@ const rulesDias = ref([
 
 const carregarJornadas = async () => {
   try {
+    // 🔒 O interceptor do Axios anexa o ponto_token automaticamente.
+    // O backend lerá o empresaId codificado e retornará apenas as jornadas desta empresa.
     const res = await api.get('/horarios');
     jornadasCadastradas.value = res.data;
   } catch (error) {
@@ -44,6 +46,11 @@ const carregarJornadas = async () => {
 const salvarJornada = async () => {
   mensagemSucesso.value = '';
   mensagemErro.value = '';
+  
+  if (!descricao.value.trim()) {
+    mensagemErro.value = 'A descrição do horário é obrigatória.';
+    return;
+  }
   
   // Monta o payload dinamicamente com base no tipo de escala selecionado
   const payload: any = {
@@ -66,11 +73,11 @@ const salvarJornada = async () => {
 
   try {
     if (idJornadaEdicao.value) {
-      // MODO EDIÇÃO (PUT)
+      // MODO EDIÇÃO (PUT) - O controlador valida se o registro de fato pertence ao Tenant
       await api.put(`/horarios/${idJornadaEdicao.value}`, payload);
       mensagemSucesso.value = 'Jornada de trabalho atualizada com sucesso!';
     } else {
-      // MODO INCLUSÃO (POST)
+      // MODO INCLUSÃO (POST) - O empresaId é injetado automaticamente na transação do banco
       await api.post('/horarios', payload);
       mensagemSucesso.value = 'Jornada de trabalho cadastrada com sucesso!';
     }
@@ -225,7 +232,7 @@ onMounted(carregarJornadas);
             </div>
           </div>
 
-          <div v-else class="secao-escala-alternada" style="margin-top: 1.5rem; padding: 1.25rem; background: #eff6ff; border-radius: 8px; border: 1px solid #bfdbfe;">
+          <div class="secao-escala-alternada" v-else style="margin-top: 1.5rem; padding: 1.25rem; background: #eff6ff; border-radius: 8px; border: 1px solid #bfdbfe;">
             <h4 style="margin: 0 0 0.5rem 0; color: #1e40af; font-weight: bold;">Configuração de Plantão Alternado</h4>
             <p style="margin: 0 0 1.25rem 0; font-size: 0.85rem; color: #1e3a8a; line-height: 1.4;">
               O sistema aplicará automaticamente os horários abaixo no formato <strong>"Dia Sim, Dia Não"</strong>. O ciclo de revezamento será calculado a partir da data de início cadastrada no perfil do colaborador.
@@ -287,7 +294,7 @@ onMounted(carregarJornadas);
                     <span v-else>☀️ Folga</span>
                   </p>
                 </div>
-                <div v-else style="margin-top: 0.5rem;">
+                <div style="margin-top: 0.5rem;" v-else>
                   <p class="sub-info" style="color: #1e40af; font-weight: 500;">
                     Horário do Plantão: {{ j.horaEntradaPadrao }}h às {{ j.horaSaidaPadrao }}h (12h)
                   </p>

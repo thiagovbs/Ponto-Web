@@ -44,6 +44,13 @@ const gerarEBaixarAEF = async () => {
       responseType: 'blob' // Preserva a integridade dos bytes do arquivo texto fixo
     });
 
+    // 🟢 PROTEÇÃO MULTI-TENANT: Se o backend retornar um JSON de erro dentro do Blob, captura e joga no catch
+    if (response.data.type === 'application/json') {
+      const textoErro = await response.data.text();
+      const jsonErro = JSON.parse(textoErro);
+      throw new Error(jsonErro.erro || 'Falha na extração dos dados fiscais.');
+    }
+
     // Força o download do arquivo txt com encode UTF-8 ativo
     const blob = new Blob([response.data], { type: 'text/plain;charset=utf-8' });
     const urlBlob = window.URL.createObjectURL(blob);
@@ -64,7 +71,7 @@ const gerarEBaixarAEF = async () => {
     mensagemSucesso.value = 'Arquivo AEF gerado e baixado com sucesso!';
   } catch (error: any) {
     console.error("Erro ao emitir arquivo fiscal AEF:", error);
-    mensagemErro.value = error.response?.data?.erro || 'Falha crítica ao compilar os dados fiscais. Verifique a conexão com o servidor.';
+    mensagemErro.value = error.message || error.response?.data?.erro || 'Falha crítica ao compilar os dados fiscais. Verifique a conexão com o servidor.';
   } finally {
     carregandoAEF.value = false;
   }

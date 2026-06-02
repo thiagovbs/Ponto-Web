@@ -27,9 +27,14 @@ const modalAjuste = reactive({
 const buscarFuncionarios = async () => {
   try {
     const res = await api.get('/usuarios');
+    // 🔒 O backend filtra a empresa automaticamente pelo Token JWT
     funcionarios.value = res.data.filter((u: any) => u.perfil === 'FUNCIONARIO');
+    
+    // 🟢 PROTEÇÃO MULTI-TENANT: Evita travamento de leitura caso o Tenant não possua funcionários ativos
     if (funcionarios.value.length > 0) {
       funcionarioSelecionado.value = funcionarios.value[0].id;
+    } else {
+      funcionarioSelecionado.value = '';
     }
   } catch (error) {
     console.error(error);
@@ -146,7 +151,7 @@ const salvarAjustePonto = async () => {
   }
 };
 
-// 🔥 MÉTODO PARA CANCELAR/OCULTAR LOGICAMENTE UMA BATIDA SEM FAZER DELETE FÍSICO
+// 🔥 AMORTIZAÇÃO LÓGICA DE MARCAÇÃO (Evita remoção física no banco em conformidade com o MTE)
 const apagarPonto = async () => {
   if (!modalAjuste.justificativa || modalAjuste.justificativa.trim().length < 10) {
     modalAjuste.erro = 'Para apagar ou desconsiderar uma marcação, uma justificativa de no mínimo 10 caracteres é obrigatória.';
@@ -226,7 +231,7 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div v-if="resumo" class="dashboard-resumo">
+      <div class="dashboard-resumo" v-if="resumo">
         <div class="stat-card">
           <h4>Mês de Referência</h4>
           <p class="dado">{{ resumo.mesReferencia }}</p>
@@ -272,48 +277,55 @@ onMounted(async () => {
               </td>
 
               <td v-else>
-                <div v-if="linha.batidas.length > 0" class="container-batidas">
-                  <div 
-                    v-for="batida in linha.batidas" 
-                    :key="batida.id || batida.hora" 
-                    :class="['tag-batida group relative', batida.foiAlterada ? 'alterada' : 'normal']"
-                    @click="abrirModalAjuste(batida, linha.data)"
-                    :title="batida.foiAlterada ? 'Ponto modificado. Passe o mouse para ver a justificativa.' : 'Clique para ajustar este horário'"
-                  >
-                    <span>{{ batida.hora }}</span>
-                    
-                    <span v-if="batida.foiAlterada" class="icon-ajustado">✏️</span>
-                    
-                    <div v-if="batida.foiAlterada" class="tooltip-justificativa">
-                      <p class="font-bold">Original: {{ batida.horaOriginal }}</p>
-                      <p class="mt-1 italic">"{{ batida.justificativa }}"</p>
-                    </div>
-
-                    <a 
-                      v-if="batida.latitude && batida.longitude" 
-                      :href="`http://maps.google.com/?q=${batida.latitude},${batida.longitude}`" 
-                      target="_blank" 
-                      title="Ver localização exata no Google Maps"
-                      class="link-mapa"
-                      @click.stop
+                <div class="container-batidas">
+                  <div v-if="linha.batidas.length > 0" class="container-batidas">
+                    <div 
+                      v-for="batida in linha.batidas" 
+                      :key="batida.id || batida.hora" 
+                      :class="['tag-batida group relative', batida.foiAlterada ? 'alterada' : 'normal']"
+                      @click="abrirModalAjuste(batida, linha.data)"
+                      :title="batida.foiAlterada ? 'Ponto modificado. Passe o mouse para ver a justificativa.' : 'Clique para ajustar este horário'"
                     >
-                      📍
-                    </a>
-                  </div>
-                  
-                  <button @click="abrirModalInclusao(linha.data)" class="btn-adicionar-ponto" title="Incluir marcação extra">+</button>
-                </div>
+                      <span>{{ batida.hora }}</span>
+                      
+                      <span v-if="batida.foiAlterada" class="icon-ajustado">✏️</span>
+                      
+                      <div v-if="batida.foiAlterada" class="tooltip-justificativa">
+                        <p class="font-bold">Original: {{ batida.horaOriginal }}</p>
+                        <p class="mt-1 italic">"{{ batida.justificativa }}"</p>
+                      </div>
 
-                <div v-else class="container-batidas">
-                  <button @click="abrirModalInclusao(linha.data)" class="btn-incluir-vazio">
-                    ➕ Incluir Ponto Manual
-                  </button>
+                      <a 
+                        v-if="batida.latitude && batida.longitude" 
+                        :href="`http://maps.google.com/?q=${batida.latitude},${batida.longitude}`" 
+                        target="_blank" 
+                        title="Ver localização exata no Google Maps"
+                        class="link-mapa"
+                        @click.stop
+                      >
+                        📍
+                      </a>
+                    </div>
+                    
+                    <button @click="abrirModalInclusao(linha.data)" class="btn-adicionar-ponto" title="Incluir marcação extra">+</button>
+                  </div>
+
+                  <div v-else class="container-batidas">
+                    <button @click="abrirModalInclusao(linha.data)" class="btn-incluir-vazio">
+                      ➕ Incluir Ponto Manual
+                    </button>
+                  </div>
                 </div>
               </td>
 
               <td>{{ linha.horasTrabalhadas }}</td>
               <td :style="{ color: linha.saldoDoDia.startsWith('-') ? '#dc2626' : '#10b981', fontWeight: linha.status === 'AFASTADO' ? 'bold' : 'normal' }">
                 {{ linha.saldoDoDia }}
+              </td>
+            </tr>
+            <tr v-if="linhasRelatorio.length === 0">
+              <td colspan="5" style="text-align: center; color: #94a3b8; padding: 2rem;">
+                Escolha um funcionário para compilar o espelho de ponto eletrônico mensal.
               </td>
             </tr>
           </tbody>
@@ -329,43 +341,43 @@ onMounted(async () => {
             Atenção: De acordo com a Portaria 671 do MTE, qualquer alteração ou inclusão manual de ponto fica registrada permanentemente na folha de auditoria para fins fiscais.
           </p>
 
-          <div class="modal-inputs">
-            <div>
+          <div class="modal-corpo-scroll">
+            <div class="form-grupo-modal">
               <label class="input-label">Data da Ocorrência</label>
-              <input type="text" :value="modalAjuste.dataBatida.split('-').reverse().join('/')" disabled class="input-time" style="background-color: #f3f4f6; color: #6b7280;" />
+              <input type="text" :value="modalAjuste.dataBatida.split('-').reverse().join('/')" disabled class="input-time input-desativado-estilo" />
             </div>
 
-            <div>
+            <div class="form-grupo-modal">
               <label class="input-label">Horário Efetivo</label>
               <input type="time" v-model="modalAjuste.novaHora" class="input-time" />
             </div>
 
-            <div>
+            <div class="form-grupo-modal">
               <label class="input-label">Justificativa Legal / Motivo</label>
               <textarea v-model="modalAjuste.justificativa" rows="3" class="input-textarea" placeholder="Ex: Colaborador esqueceu de bater o ponto na entrada do plantão..."></textarea>
               <span class="textarea-subtext">Mínimo de 10 caracteres. Forneça o motivo detalhado.</span>
             </div>
 
             <p v-if="modalAjuste.erro" class="msg-erro">{{ modalAjuste.erro }}</p>
+          </div>
 
-            <div class="modal-acoes">
-              <button 
-                v-if="modoModal === 'EDITAR'" 
-                type="button" 
-                @click="apagarPonto" 
-                class="btn-excluir-logico"
-                :disabled="modalAjuste.carregando"
-              >
-                ❌ Desconsiderar Ponto
-              </button>
-              
-              <div style="flex: 1;"></div>
+          <div class="modal-acoes">
+            <button 
+              v-if="modoModal === 'EDITAR'" 
+              type="button" 
+              @click="apagarPonto" 
+              class="btn-excluir-logico"
+              :disabled="modalAjuste.carregando"
+            >
+              ❌ Desconsiderar Ponto
+            </button>
+            
+            <div style="flex: 1;"></div>
 
-              <button @click="modalAjuste.aberto = false" class="btn-cancelar" :disabled="modalAjuste.carregando">Cancelar</button>
-              <button @click="salvarAjustePonto" class="btn-salvar" :disabled="modalAjuste.carregando">
-                {{ modalAjuste.carregando ? 'Salvando...' : (modoModal === 'EDITAR' ? 'Gravar Ajuste' : 'Salvar Registro') }}
-              </button>
-            </div>
+            <button @click="modalAjuste.aberto = false" class="btn-cancelar" :disabled="modalAjuste.carregando">Cancelar</button>
+            <button @click="salvarAjustePonto" class="btn-salvar" :disabled="modalAjuste.carregando">
+              {{ modalAjuste.carregando ? 'Salvando...' : (modoModal === 'EDITAR' ? 'Gravar Ajuste' : 'Salvar Registro') }}
+            </button>
           </div>
         </div>
       </div>
@@ -404,7 +416,7 @@ th { background-color: #f9fafb; color: #374151; }
 
 /* 🏝️ REGRAS DE DESIGN ADICIONADAS PARA O MODULO DE AFASTAMENTOS */
 .linha-afastada {
-  background-color: #f0fdf4 !important; /* Fundo verde menta bem leve indicando abono regular */
+  background-color: #f0fdf4 !important;
 }
 .coluna-afastamento-texto {
   color: #166534;
@@ -446,17 +458,61 @@ th { background-color: #f9fafb; color: #374151; }
 .status-txt.folga { background: #f3f4f6; color: #4b5563; }
 .status-txt.falta { background: #fef2f2; color: #b91c1c; }
 
-.modal-backdrop { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); display: flex; align-items: center; justify-content: center; z-index: 100; }
-.modal-card { background: white; padding: 1.5rem; border-radius: 8px; width: 100%; max-width: 440px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
-.modal-titulo { margin: 0 0 0.5rem 0; font-size: 1.2rem; font-weight: bold; color: #111827; }
-.modal-aviso { font-size: 0.75rem; color: #6b7280; line-height: 1.3; margin-bottom: 1.2rem; }
-.modal-inputs { display: flex; flex-direction: column; gap: 1rem; }
+/* ─── BLINDAGEM DO MODAL CONTRA ESTOURO VERTICAL ─── */
+.modal-backdrop { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem; box-sizing: border-box; }
+
+.modal-card { 
+  background: white; 
+  padding: 1.5rem; 
+  border-radius: 8px; 
+  width: 100%; 
+  max-width: 440px; 
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); 
+  
+  max-height: 85vh;          /* Regra master: Ocupa no máximo 85% do display visível */
+  display: flex;
+  flex-direction: column;    /* Flex vertical para cascata limpa */
+  min-height: 0;             /* Permite o encolhimento de contêineres filhos */
+  box-sizing: border-box;
+}
+
+.modal-titulo { margin: 0 0 0.5rem 0; font-size: 1.2rem; font-weight: bold; color: #111827; flex-shrink: 0; }
+.modal-aviso { font-size: 0.75rem; color: #6b7280; line-height: 1.3; margin-bottom: 1.2rem; flex-shrink: 0; }
+
+/* 🟢 COMPONENTE DE ROLAGEM REATIVA INTERNA */
+.modal-corpo-scroll {
+  flex: 1;
+  overflow-y: auto;          /* Ativa a barra apenas quando necessário */
+  padding-right: 0.4rem;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+
+/* Scrollbar fina corporativa */
+.modal-corpo-scroll::-webkit-scrollbar { width: 5px; }
+.modal-corpo-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.modal-corpo-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+
+.form-grupo-modal { display: flex; flex-direction: column; margin-bottom: 1rem; }
 .input-label { display: block; font-size: 0.85rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem; }
 .input-time { width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.9rem; box-sizing: border-box; }
+.input-desativado-estilo { background-color: #f3f4f6; color: #6b7280; }
 .input-textarea { width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.9rem; font-family: sans-serif; resize: none; box-sizing: border-box; }
-.textarea-subtext { font-size: 0.7rem; color: #9ca3af; }
-.msg-erro { background: #fef2f2; color: #991b1b; padding: 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 500; margin: 0; }
-.modal-acoes { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem; align-items: center; }
+.textarea-subtext { font-size: 0.7rem; color: #9ca3af; margin-top: 0.25rem; display: block; }
+.msg-erro { background: #fef2f2; color: #991b1b; padding: 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 500; margin: 0; border: 1px solid #fca5a5; }
+
+/* ─── AÇÕES TRAVADAS NA BASE DO MODAL ─── */
+.modal-acoes { 
+  display: flex; 
+  justify-content: flex-end; 
+  gap: 0.5rem; 
+  margin-top: auto; 
+  align-items: center; 
+  flex-shrink: 0;
+  background: white;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e2e8f0;
+}
 
 .btn-excluir-logico { padding: 0.5rem 1rem; border: 1px solid #fca5a5; background: #fef2f2; color: #b91c1c; border-radius: 6px; font-size: 0.85rem; font-weight: bold; cursor: pointer; transition: background 0.2s; }
 .btn-excluir-logico:hover { background: #fee2e2; }
