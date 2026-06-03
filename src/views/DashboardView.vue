@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, nextTick } from 'vue'; // 🟢 INJETADO: nextTick para garantir sincronia do DOM
 import SidebarComponent from '../components/SidebarComponent.vue';
 import api from '../services/api';
 
@@ -12,7 +12,7 @@ ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
 const totalFuncionarios = ref(0);
 const batidasHoje = ref(0);
 const feed = ref<any[]>([]);
-const graficoPronto = ref(false); // 🟢 Flag de controle para evitar quebras de renderização no Chart.js
+const graficoPronto = ref(false); // Flag de controle para evitar quebras de renderização no Chart.js
 
 // Configurações reativas do Gráfico
 const chartData = ref<any>({
@@ -35,8 +35,9 @@ onMounted(async () => {
     batidasHoje.value = resposta.data.batidasHoje;
     feed.value = resposta.data.feedAtividades;
 
-    // 🟢 Proteção reativa: valida se a estrutura do gráfico existe antes de injetar
+    // Proteção reativa: valida se a estrutura do gráfico existe antes de injetar
     if (resposta.data.graficoSemanal && resposta.data.graficoSemanal.labels) {
+      // 1. Injeta os dados estruturados primeiro
       chartData.value = {
         labels: resposta.data.graficoSemanal.labels,
         datasets: [
@@ -48,7 +49,10 @@ onMounted(async () => {
           }
         ]
       };
-      graficoPronto.value = true; // Libera o gráfico para renderização segura
+      
+      // 2. 🟢 SOLUÇÃO ATÔMICA: Aguarda o Vue processar o estado antes de disparar o v-if do canvas
+      await nextTick();
+      graficoPronto.value = true; 
     }
   } catch (error) {
     console.error('Erro ao carregar dados do dashboard:', error);
@@ -62,7 +66,7 @@ onMounted(async () => {
     <main class="content">
       <header class="dashboard-header">
         <h2>Painel de Controle</h2>
-        <p>Visão geral e monitoramento de frequência.</p>
+        <p>Visão geral e monitoring de frequência.</p>
       </header>
 
       <div class="cards-grid">
@@ -120,7 +124,7 @@ onMounted(async () => {
 .card { 
   flex: 1; padding: 1.5rem; border-radius: 12px; color: white; 
   display: flex; justify-content: space-between; align-items: center;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 .bg-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
 .bg-green { background: linear-gradient(135deg, #10b981, #059669); }
