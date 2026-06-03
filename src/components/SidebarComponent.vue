@@ -10,6 +10,9 @@ const isCollapsed = ref(false);
 // 🔒 CONTROLE SAAS: Guarda se o usuário atual possui a credencial master do sistema
 const ehSuperAdmin = ref(false);
 
+// 👁️ ESTADO DE SUPORTE: Controla a exibição da barra vermelha de personificação
+const modoSuporteAtivo = ref(false);
+
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value;
 };
@@ -21,8 +24,34 @@ const verificarPerfilMestre = () => {
       const usuario = JSON.parse(dadosUsuarioStr);
       ehSuperAdmin.value = usuario.perfil === 'SUPER_ADMIN' || usuario.perfil === 'super_admin';
     }
+
+    // 🔒 Verifica dinamicamente se o token ativo em sessão é um token de personificação
+    const token = localStorage.getItem('ponto_token');
+    if (token) {
+      const payloadBase64 = token.split('.')[1];
+      if (payloadBase64) {
+        const payloadDecodificado = JSON.parse(atob(payloadBase64));
+        if (payloadDecodificado.isPersonificado) {
+          modoSuporteAtivo.value = true;
+        }
+      }
+    }
   } catch (e) {
     console.error('Erro ao ler credenciais do sidebar:', e);
+  }
+};
+
+// 🏃‍♂️ RETORNAR AO MASTER: Desfaz a personificação e devolve seu controle global
+const voltarAoPainelMaster = () => {
+  const tokenMasterBackup = localStorage.getItem('token_master_backup');
+  if (tokenMasterBackup) {
+    localStorage.setItem('ponto_token', tokenMasterBackup);
+    localStorage.removeItem('token_master_backup');
+    
+    // Força o redirecionamento devolvendo você para o módulo central
+    window.location.href = '/super-admin';
+  } else {
+    logout();
   }
 };
 
@@ -33,81 +62,125 @@ onMounted(() => {
 const logout = () => {
   localStorage.removeItem('ponto_token');
   localStorage.removeItem('ponto_user');
+  localStorage.removeItem('token_master_backup');
   router.push('/');
 };
 </script>
 
 <template>
-  <aside :class="['sidebar', { 'collapsed': isCollapsed }]">
-    <div class="logo">
-      <h3 v-if="!isCollapsed">Ponto Admin</h3>
-      <h3 v-else>⏱️</h3>
-      
-      <button @click="toggleSidebar" class="btn-toggle" :title="isCollapsed ? 'Expandir Menu' : 'Recolher Menu'">
-        {{ isCollapsed ? '❯' : '❮' }}
-      </button>
+  <div>
+    <div v-if="modoSuporteAtivo" class="banner-suporte-global">
+      <span>⚠️ MODO SUPORTE ATIVO: Você está visualizando os registros internos deste cliente.</span>
+      <button class="btn-sair-suporte" @click="voltarAoPainelMaster">Sair e Voltar ao Master</button>
     </div>
-    
-    <nav class="menu">
-      <router-link v-if="ehSuperAdmin" to="/super-admin" class="menu-item item-master" active-class="active">
-        <span class="menu-icon">🚀</span>
-        <span v-if="!isCollapsed" class="menu-text">Módulo Master</span>
-      </router-link>
 
-      <router-link to="/dashboard" class="menu-item" active-class="active">
-        <span class="menu-icon">📊</span>
-        <span v-if="!isCollapsed" class="menu-text">Dashboard</span>
-      </router-link>
+    <aside :class="['sidebar', { 'collapsed': isCollapsed }]" :style="{ marginTop: modoSuporteAtivo ? '40px' : '0px', height: modoSuporteAtivo ? 'calc(100vh - 40px)' : '100vh' }">
+      <div class="logo">
+        <h3 v-if="!isCollapsed">Ponto Admin</h3>
+        <h3 v-else>⏱️</h3>
+        
+        <button @click="toggleSidebar" class="btn-toggle" :title="isCollapsed ? 'Expandir Menu' : 'Recolher Menu'">
+          {{ isCollapsed ? '❯' : '❮' }}
+        </button>
+      </div>
       
-      <router-link to="/jornadas" class="menu-item" active-class="active">
-        <span class="menu-icon">⏱️</span>
-        <span v-if="!isCollapsed" class="menu-text">Configurar Horários</span>
-      </router-link>
+      <nav class="menu">
+        <router-link v-if="ehSuperAdmin || modoSuporteAtivo" to="/super-admin" class="menu-item item-master" active-class="active">
+          <span class="menu-icon">🚀</span>
+          <span v-if="!isCollapsed" class="menu-text">Módulo Master</span>
+        </router-link>
 
-      <router-link to="/filiais" class="menu-item" active-class="active">
-        <span class="menu-icon">🏢</span>
-        <span v-if="!isCollapsed" class="menu-text">Filiais</span>
-      </router-link>
+        <router-link to="/dashboard" class="menu-item" active-class="active">
+          <span class="menu-icon">📊</span>
+          <span v-if="!isCollapsed" class="menu-text">Dashboard</span>
+        </router-link>
+        
+        <router-link to="/jornadas" class="menu-item" active-class="active">
+          <span class="menu-icon">⏱️</span>
+          <span v-if="!isCollapsed" class="menu-text">Configurar Horários</span>
+        </router-link>
 
-      <router-link to="/setores" class="menu-item" active-class="active">
-        <span class="menu-icon">📁</span>
-        <span v-if="!isCollapsed" class="menu-text">Setores</span>
-      </router-link>
+        <router-link to="/filiais" class="menu-item" active-class="active">
+          <span class="menu-icon">🏢</span>
+          <span v-if="!isCollapsed" class="menu-text">Filiais</span>
+        </router-link>
+
+        <router-link to="/setores" class="menu-item" active-class="active">
+          <span class="menu-icon">📁</span>
+          <span v-if="!isCollapsed" class="menu-text">Setores</span>
+        </router-link>
+        
+        <router-link to="/funcionarios" class="menu-item" active-class="active">
+          <span class="menu-icon">👥</span>
+          <span v-if="!isCollapsed" class="menu-text">Funcionários</span>
+        </router-link>
+
+        <router-link to="/afastamentos" class="menu-item" active-class="active">
+          <span class="menu-icon">🏝️</span>
+          <span v-if="!isCollapsed" class="menu-text">Afastamentos e Férias</span>
+        </router-link>
+        
+        <router-link to="/relatorios" class="menu-item" active-class="active">
+          <span class="menu-icon">📋</span>
+          <span v-if="!isCollapsed" class="menu-text">Espelho de Ponto</span>
+        </router-link>
+
+        <router-link to="/fiscalizacao" class="menu-item" active-class="active">
+          <span class="menu-icon">⚖️</span>
+          <span v-if="!isCollapsed" class="menu-text">Fiscalização MTE</span>
+        </router-link>      
+        
+        <router-link to="/auditoria" class="menu-item" active-class="active">
+          <span class="menu-icon">🛡️</span>
+          <span v-if="!isCollapsed" class="menu-text">Logs de Auditoria</span>
+        </router-link>
+      </nav>
       
-      <router-link to="/funcionarios" class="menu-item" active-class="active">
-        <span class="menu-icon">👥</span>
-        <span v-if="!isCollapsed" class="menu-text">Funcionários</span>
-      </router-link>
-
-      <router-link to="/afastamentos" class="menu-item" active-class="active">
-        <span class="menu-icon">🏝️</span>
-        <span v-if="!isCollapsed" class="menu-text">Afastamentos e Férias</span>
-      </router-link>
-      
-      <router-link to="/relatorios" class="menu-item" active-class="active">
-        <span class="menu-icon">📋</span>
-        <span v-if="!isCollapsed" class="menu-text">Espelho de Ponto</span>
-      </router-link>
-
-      <router-link to="/fiscalizacao" class="menu-item" active-class="active">
-        <span class="menu-icon">⚖️</span>
-        <span v-if="!isCollapsed" class="menu-text">Fiscalização MTE</span>
-      </router-link>      
-      
-      <router-link to="/auditoria" class="menu-item" active-class="active">
-        <span class="menu-icon">🛡️</span>
-        <span v-if="!isCollapsed" class="menu-text">Logs de Auditoria</span>
-      </router-link>
-    </nav>
-    
-    <button @click="logout" class="btn-logout">
-      <span class="menu-icon">🚪</span>
-      <span v-if="!isCollapsed" class="menu-text">Sair</span>
-    </button>
-  </aside>
+      <button @click="logout" class="btn-logout">
+        <span class="menu-icon">🚪</span>
+        <span v-if="!isCollapsed" class="menu-text">Sair</span>
+      </button>
+    </aside>
+  </div>
 </template>
 
 <style scoped>
+/* 🚨 ESTILOS DA BARRA SUPERIOR DE SUPORTE ATIVO */
+.banner-suporte-global {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background-color: #dc2626;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1.5rem;
+  font-family: sans-serif;
+  font-size: 0.85rem;
+  font-weight: bold;
+  z-index: 9999;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-sizing: border-box;
+}
+
+.btn-sair-suporte {
+  background: white;
+  color: #dc2626;
+  border: none;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: opacity 0.2s;
+}
+.btn-sair-suporte:hover {
+  opacity: 0.9;
+}
+
 /* 📐 DIMENSÕES E TRANSIÇÃO SUAVE PADRÃO (EXPANDIDO) */
 .sidebar {
   width: 250px;
@@ -115,11 +188,10 @@ const logout = () => {
   color: white;
   display: flex;
   flex-direction: column;
-  height: 100vh;
   position: sticky;
   left: 0;
   top: 0;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin-top 0.1s ease, height 0.1s ease;
   z-index: 100;
   box-sizing: border-box; /* 🟢 CORREÇÃO: Garante que as bordas fiquem contidas na largura */
 }

@@ -175,7 +175,7 @@ onMounted(carregarDadosIniciais);
             <tr>
               <th>Departamento / Setor</th>
               <th>Filial Vinculada</th>
-              <th style="text-align: center;">Ações</th>
+              <th style="text-align: center; width: 12%;">Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -184,8 +184,8 @@ onMounted(carregarDadosIniciais);
               <td><span class="badge-filial">{{ item.filial?.nome ?? 'Unidade não identificada' }}</span></td>
               <td>
                 <div class="acoes-row">
-                  <button class="btn-edit" @click="abrirFormulario(item)">✏️ Editar</button>
-                  <button class="btn-delete" @click="deletarSetor(item.id)">🗑️ Excluir</button>
+                  <button class="btn-edit" @click="abrirFormulario(item)" title="Editar Parâmetros do Setor">✏️</button>
+                  <button class="btn-delete" @click="deletarSetor(item.id)" title="Excluir Departamento">🗑️</button>
                 </div>
               </td>
             </tr>
@@ -225,11 +225,42 @@ th, td { padding: 0.85rem; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; 
 th { background-color: #f8fafc; color: #475569; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
 
 .badge-filial { display: inline-block; padding: 0.25rem 0.5rem; background-color: #f1f5f9; border-radius: 4px; color: #475569; font-weight: 600; font-size: 0.85rem; border: 1px solid #e2e8f0; }
-.acoes-row { display: flex; gap: 8px; justify-content: center; }
-.btn-edit { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 0.4rem 0.75rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: #334155; font-weight: 500; }
-.btn-edit:hover { background: #e2e8f0; }
-.btn-delete { background: #fff5f5; border: 1px solid #fca5a5; padding: 0.4rem 0.75rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: #dc2626; font-weight: 500; }
-.btn-delete:hover { background: #fee2e2; }
+.acoes-row { display: flex; gap: 8px; justify-content: center; align-items: center; }
+
+/* 🟢 FORMATO DE ÍCONE QUADRADO PADRONIZADO */
+.btn-edit { 
+  background: #f1f5f9; 
+  border: 1px solid #cbd5e1; 
+  padding: 0.4rem; 
+  border-radius: 6px; 
+  cursor: pointer; 
+  font-size: 1rem; 
+  color: #334155; 
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  transition: all 0.1s ease;
+}
+.btn-edit:hover { background: #e2e8f0; border-color: #94a3b8; }
+
+.btn-delete { 
+  background: #fff5f5; 
+  border: 1px solid #fca5a5; 
+  padding: 0.4rem; 
+  border-radius: 6px; 
+  cursor: pointer; 
+  font-size: 1rem; 
+  color: #dc2626; 
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  transition: all 0.1s ease;
+}
+.btn-delete:hover { background: #fee2e2; border-color: #fca5a5; }
 
 .sucesso { color: #065f46; margin-bottom: 1rem; font-weight: bold; font-size: 0.9rem; background: #ecfdf5; padding: 0.6rem; border-radius: 6px; border: 1px solid #bbf7d0; }
 .erro { color: #991b1b; margin-bottom: 1rem; font-weight: bold; font-size: 0.9rem; background: #fef2f2; padding: 0.6rem; border-radius: 6px; border: 1px solid #fca5a5; }

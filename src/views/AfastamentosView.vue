@@ -223,39 +223,46 @@ onMounted(carregarDados);
 
       <div class="table-container">
         <h3>Histórico de Ausências e Férias Ativas</h3>
-        <table v-if="afastamentos.length > 0">
-          <thead>
-            <tr>
-              <th>Funcionário</th>
-              <th>Tipo</th>
-              <th>Data Início</th>
-              <th>Data Fim</th>
-              <th>Motivo / Justificativa</th>
-              <th style="text-align: center;">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in afastamentos" :key="item.id">
-              <td><strong>{{ item.usuario.nome }}</strong></td>
-              <td>
-                <span :class="['tag-tipo', item.tipo.toLowerCase()]">
-                  {{ item.tipo.replace('_', ' ') }}
-                </span>
-              </td>
-              <td>{{ formatarDataBR(item.dataInicio) }}</td>
-              <td>{{ formatarDataBR(item.dataFim) }}</td>
-              <td><p class="txt-justificativa" :title="item.justificativa">{{ item.justificativa }}</p></td>
-              <td>
-                <div class="acoes-container">
-                  <button @click="abrirEdicao(item)" class="btn-tbl-editar" title="Editar período ou dados">✏️ Editar</button>
-                  <button @click="excluirAfastamento(item.id)" class="btn-tbl-deletar" title="Estornar/Remover afastamento">🗑️ Estornar</button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <div v-else class="sem-dados">
-          <p>Nenhum período de férias ou afastamento ativo cadastrado no sistema atualmente.</p>
+        
+        <div class="tabela-wrapper-scroll">
+          <table v-if="afastamentos.length > 0">
+            <thead>
+              <tr>
+                <th style="width: 22%;">Funcionário</th>
+                <th style="width: 16%;">Tipo</th>
+                <th style="width: 13%;">Data Início</th>
+                <th style="width: 13%;">Data Fim</th>
+                <th style="width: 26%;">Motivo / Justificativa</th>
+                <th style="width: 10%; text-align: center;">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in afastamentos" :key="item.id">
+                <td><strong>{{ item.usuario.nome }}</strong></td>
+                <td>
+                  <span :class="['tag-tipo', item.tipo.toLowerCase()]">
+                    {{ item.tipo.replace('_', ' ') }}
+                  </span>
+                </td>
+                <td>{{ formatarDataBR(item.dataInicio) }}</td>
+                <td>{{ formatarDataBR(item.dataFim) }}</td>
+                <td>
+                  <p class="txt-justificativa" :title="item.justificativa">
+                    {{ item.justificativa }}
+                  </p>
+                </td>
+                <td>
+                  <div class="acoes-container">
+                    <button @click="abrirEdicao(item)" class="btn-tbl-editar" title="Editar período ou dados">✏️</button>
+                    <button @click="excluirAfastamento(item.id)" class="btn-tbl-deletar" title="Estornar/Remover afastamento">🗑️</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div v-else class="sem-dados">
+            <p>Nenhum período de férias ou afastamento ativo cadastrado no sistema atualmente.</p>
+          </div>
         </div>
       </div>
 
@@ -310,8 +317,14 @@ onMounted(carregarDados);
 </template>
 
 <style scoped>
-.layout { display: flex; min-height: 100vh; background-color: #f8fafc; }
-.content { padding: 2rem; flex: 1; font-family: sans-serif; box-sizing: border-box; }
+.layout { 
+  display: flex; 
+  flex-direction: row;
+  min-height: 100vh; 
+  width: 100%;
+  background-color: #f8fafc; 
+}
+.content { padding: 2rem; flex: 1; font-family: sans-serif; box-sizing: border-box; min-width: 0; }
 h2 { color: #0f172a; margin: 0; }
 h3 { margin: 0 0 1rem 0; color: #1e293b; font-size: 1.1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem; }
 p { color: #64748b; margin: 0.25rem 0 1.5rem 0; }
@@ -333,11 +346,45 @@ p { color: #64748b; margin: 0.25rem 0 1.5rem 0; }
 .btn-salvar-formulario:hover { background-color: #1d4ed8; }
 
 /* TABELA DE LISTAGEM */
-.table-container { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-table { width: 100%; border-collapse: collapse; text-align: left; }
-th, td { padding: 0.85rem; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; vertical-align: middle; }
+.table-container { 
+  background: white; 
+  padding: 1.5rem; 
+  border-radius: 8px; 
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+  max-width: 100%;
+}
+
+.tabela-wrapper-scroll {
+  width: 100%;
+  overflow-x: auto; 
+}
+
+table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  text-align: left; 
+  table-layout: fixed; 
+}
+
+th, td { 
+  padding: 0.85rem; 
+  border-bottom: 1px solid #e2e8f0; 
+  font-size: 0.9rem; 
+  vertical-align: middle; 
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
 th { background-color: #f8fafc; color: #475569; font-weight: 600; }
-.txt-justificativa { margin: 0; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #64748b; }
+
+.txt-justificativa { 
+  margin: 0; 
+  width: 100%;
+  white-space: normal;      
+  word-wrap: break-word;    
+  word-break: break-all;    
+  color: #64748b; 
+}
 
 /* TAGS DOS TIPOS */
 .tag-tipo { font-size: 0.75rem; font-weight: bold; padding: 0.2rem 0.5rem; border-radius: 4px; text-transform: uppercase; display: inline-block; }
@@ -347,12 +394,45 @@ th { background-color: #f8fafc; color: #475569; font-weight: 600; }
 .tag-tipo.afastamento_inss { background-color: #fff7ed; color: #9a3412; }
 .tag-tipo.outros { background-color: #f1f5f9; color: #475569; }
 
-/* BOTÕES DA TABELA */
-.acoes-container { display: flex; gap: 0.5rem; }
-.btn-tbl-editar { background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; padding: 0.35rem 0.6rem; border-radius: 4px; font-size: 0.8rem; cursor: pointer; }
-.btn-tbl-editar:hover { background: #e2e8f0; }
-.btn-tbl-deletar { background: #fff5f5; border: 1px solid #fecaca; color: #c53030; padding: 0.35rem 0.6rem; border-radius: 4px; font-size: 0.8rem; cursor: pointer; }
-.btn-tbl-deletar:hover { background: #fee2e2; }
+/* CONTAINER DE AÇÕES RESPONSIVO PARA ÍCONES COMPACTOS */
+.acoes-container { 
+  display: flex; 
+  gap: 0.4rem; 
+  justify-content: center; 
+  align-items: center;
+}
+
+.btn-tbl-editar { 
+  background: #f1f5f9; 
+  border: 1px solid #cbd5e1; 
+  padding: 0.4rem; 
+  border-radius: 6px; 
+  font-size: 1rem; 
+  cursor: pointer; 
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s ease;
+  width: 34px;
+  height: 34px;
+}
+.btn-tbl-editar:hover { background: #e2e8f0; border-color: #94a3b8; }
+
+.btn-tbl-deletar { 
+  background: #fff5f5; 
+  border: 1px solid #fecaca; 
+  padding: 0.4rem; 
+  border-radius: 6px; 
+  font-size: 1rem; 
+  cursor: pointer; 
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s ease;
+  width: 34px;
+  height: 34px;
+}
+.btn-tbl-deletar:hover { background: #fee2e2; border-color: #fca5a5; }
 
 .sem-dados { text-align: center; padding: 2rem; color: #94a3b8; font-size: 0.95rem; }
 .msg-erro { background: #fef2f2; color: #991b1b; padding: 0.6rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; }

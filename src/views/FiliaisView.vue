@@ -159,7 +159,7 @@ onMounted(carregarFiliais);
             <tr>
               <th>Identificador / Nome da Unidade</th>
               <th>CNPJ Vinculado</th>
-              <th style="text-align: center;">Ações Estruturais</th>
+              <th style="text-align: center; width: 12%;">Ações Estruturais</th>
             </tr>
           </thead>
           <tbody>
@@ -168,8 +168,8 @@ onMounted(carregarFiliais);
               <td><span class="txt-cnpj">{{ item.cnpj }}</span></td>
               <td>
                 <div class="acoes-row">
-                  <button class="btn-edit" @click="abrirFormulario(item)">✏️ Editar Unidade</button>
-                  <button class="btn-delete" @click="deletarFilial(item.id)">🗑️ Remover</button>
+                  <button class="btn-edit" @click="abrirFormulario(item)" title="Editar Dados da Filial">✏️</button>
+                  <button class="btn-delete" @click="deletarFilial(item.id)" title="Remover Unidade e Vínculos">🗑️</button>
                 </div>
               </td>
             </tr>
@@ -208,11 +208,42 @@ th, td { padding: 0.85rem; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; 
 th { background-color: #f8fafc; color: #475569; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
 
 .txt-cnpj { font-family: monospace; font-size: 0.9rem; color: #475569; font-weight: 500; }
-.acoes-row { display: flex; gap: 8px; justify-content: center; }
-.btn-edit { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 0.4rem 0.75rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: #334155; font-weight: 500; }
-.btn-edit:hover { background: #e2e8f0; }
-.btn-delete { background: #fff5f5; border: 1px solid #fca5a5; padding: 0.4rem 0.75rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: #dc2626; font-weight: 500; }
-.btn-delete:hover { background: #fee2e2; }
+.acoes-row { display: flex; gap: 8px; justify-content: center; align-items: center; }
+
+/* green 🟢 COMPACTAÇÃO DOS BOTÕES COM FORMATO QUADRADO PERFEITO */
+.btn-edit { 
+  background: #f1f5f9; 
+  border: 1px solid #cbd5e1; 
+  padding: 0.4rem; 
+  border-radius: 6px; 
+  cursor: pointer; 
+  font-size: 1rem; 
+  color: #334155; 
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  transition: all 0.1s ease;
+}
+.btn-edit:hover { background: #e2e8f0; border-color: #94a3b8; }
+
+.btn-delete { 
+  background: #fff5f5; 
+  border: 1px solid #fca5a5; 
+  padding: 0.4rem; 
+  border-radius: 6px; 
+  cursor: pointer; 
+  font-size: 1rem; 
+  color: #dc2626; 
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  transition: all 0.1s ease;
+}
+.btn-delete:hover { background: #fee2e2; border-color: #fca5a5; }
 
 .sucesso { color: #065f46; margin-bottom: 1rem; font-weight: bold; font-size: 0.9rem; background: #ecfdf5; padding: 0.6rem; border-radius: 6px; border: 1px solid #bbf7d0; }
 .erro { color: #991b1b; margin-bottom: 1rem; font-weight: bold; font-size: 0.9rem; background: #fef2f2; padding: 0.6rem; border-radius: 6px; border: 1px solid #fca5a5; }

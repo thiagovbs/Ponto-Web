@@ -185,7 +185,7 @@ const excluirColaborador = async (id: string) => {
     mensagemSucesso.value = 'Colaborador removido com sucesso.';
     await inicializarDados();
   } catch (error) {
-    mensagemErro.value = 'Não foi possível excluir o colaborador.';
+    mensagemErro.value = 'Não foi possível excluir the colaborador.';
   }
 };
 
@@ -292,7 +292,7 @@ const formatarDataTabela = (dataISO: string | null) => {
               <th>CPF</th>
               <th>Perfil</th>
               <th>Início da Escala</th> 
-              <th>Ações</th>
+              <th style="text-align: center; width: 10%;">Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -307,8 +307,8 @@ const formatarDataTabela = (dataISO: string | null) => {
               <td>{{ formatarDataTabela(f.dataInicioEscala) }}</td> 
               <td>
                 <div class="acoes-row">
-                  <button class="btn-edit" @click="abrirFormulario(f)">✏️ Editar</button>
-                  <button class="btn-delete" @click="excluirColaborador(f.id)">🗑️ Excluir</button>
+                  <button class="btn-edit" @click="abrirFormulario(f)" title="Editar Dados do Funcionário">✏️</button>
+                  <button class="btn-delete" @click="excluirColaborador(f.id)" title="Excluir Funcionário do Sistema">🗑️</button>
                 </div>
               </td>
             </tr>
@@ -428,11 +428,42 @@ table { width: 100%; border-collapse: collapse; text-align: left; }
 th, td { padding: 0.85rem; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; vertical-align: middle; }
 th { background-color: #f8fafc; color: #475569; font-weight: 600; }
 
-.acoes-row { display: flex; gap: 8px; }
-.btn-edit { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 0.4rem 0.75rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: #334155; font-weight: 500; transition: background 0.1s; }
-.btn-edit:hover { background: #e2e8f0; }
-.btn-delete { background: #fff5f5; border: 1px solid #fca5a5; padding: 0.4rem 0.75rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: #dc2626; font-weight: 500; transition: background 0.1s; }
-.btn-delete:hover { background: #fee2e2; }
+.acoes-row { display: flex; gap: 8px; justify-content: center; align-items: center; }
+
+/* 🟢 COMPACTAÇÃO VISUAL PADRONIZADA DOS BOTÕES DE AÇÃO */
+.btn-edit { 
+  background: #f1f5f9; 
+  border: 1px solid #cbd5e1; 
+  padding: 0.4rem; 
+  border-radius: 6px; 
+  cursor: pointer; 
+  font-size: 1rem; 
+  color: #334155; 
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  transition: background 0.1s; 
+}
+.btn-edit:hover { background: #e2e8f0; border-color: #94a3b8; }
+
+.btn-delete { 
+  background: #fff5f5; 
+  border: 1px solid #fca5a5; 
+  padding: 0.4rem; 
+  border-radius: 6px; 
+  cursor: pointer; 
+  font-size: 1rem; 
+  color: #dc2626; 
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  transition: background 0.1s; 
+}
+.btn-delete:hover { background: #fee2e2; border-color: #fca5a5; }
 
 .sucesso { color: #10b981; margin-bottom: 1rem; font-weight: bold; font-size: 0.9rem; background: #ecfdf5; padding: 0.5rem; border-radius: 4px; }
 .erro { color: #dc2626; margin-bottom: 1rem; font-weight: bold; font-size: 0.9rem; background: #fef2f2; padding: 0.5rem; border-radius: 4px; }
