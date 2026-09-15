@@ -12,6 +12,15 @@ dist
 dist-ssr
 *.local
 
+# Variaveis de ambiente.
+# No Vite, tudo que comeca com VITE_ e embutido no bundle e fica visivel no
+# navegador -- estes arquivos nunca devem guardar segredo de verdade. Ainda
+# assim ficam fora do versionamento, por conterem configuracao de ambiente.
+.env
+.env.*
+.env*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

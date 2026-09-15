@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
+import { destinoDaNavegacao, type MetaRota } from './guard';
 import LoginView from '../views/LoginView.vue';
 import DashboardView from '../views/DashboardView.vue';
 import FuncionariosView from '../views/FuncionariosView.vue';
@@ -71,15 +72,16 @@ const router = createRouter({
   routes,
 });
 
-// Trava de segurança: Verifica se a rota exige login
+/**
+ * A decisão de quem entra onde vive em ./guard, sem dependência do Vue, para
+ * poder ser testada sem montar a aplicação.
+ */
 router.beforeEach((to, _from, next) => {
-  const isAuthenticated = !!localStorage.getItem('ponto_token');
-  
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    next('/');
-  } else {
-    next();
-  }
+  const destino = destinoDaNavegacao(to.meta as MetaRota, localStorage);
+
+  // next() e next(path) sao sobrecargas distintas: passar undefined nao casa.
+  if (destino) next(destino);
+  else next();
 });
 
 export default router;
